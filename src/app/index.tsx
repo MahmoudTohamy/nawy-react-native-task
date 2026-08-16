@@ -13,6 +13,7 @@ import {
 import HabitatCard from '../components/HabitatCard';
 import HabitatFilterBar from '../components/HabitatFilterBar';
 import { useFilteredSortedHabitats } from '../hooks/useFilteredSortedHabitats';
+import { useControlStore } from '../stores/controlStore';
 import { useHabitatStore } from '../stores/habitatStore';
 import { SortKey } from '../types/habitat';
 import { hasActiveFilters } from '../utils/filterHabitats';
@@ -35,16 +36,28 @@ export default function ListingsScreen() {
   const setSortBy = useHabitatStore((s) => s.setSortBy);
   const resetFilters = useHabitatStore((s) => s.resetFilters);
 
+  const fetchControlData = useControlStore((s) => s.fetchControlData);
+  const getActiveAlertCount = useControlStore((s) => s.getActiveAlertCount);
+  const getCriticalAlertCount = useControlStore((s) => s.getCriticalAlertCount);
+
   const [menuOpen, setMenuOpen] = useState(false);
   const displayedHabitats = useFilteredSortedHabitats();
   const isFiltered = hasActiveFilters(filters);
 
   useEffect(() => {
     fetchHabitats();
-  }, [fetchHabitats]);
+    fetchControlData();
+  }, [fetchHabitats, fetchControlData]);
+
+  const activeAlerts = getActiveAlertCount();
+  const criticalCount = getCriticalAlertCount();
 
   const handleHabitatPress = (id: string) => {
     router.push({ pathname: '/property/unlock/[id]', params: { id } });
+  };
+
+  const handleOpenControlCenter = () => {
+    router.push('/control');
   };
 
   return (
@@ -53,13 +66,42 @@ export default function ListingsScreen() {
         options={{
           title: 'Nawy Mars Habitats',
           headerRight: () => (
-            <TouchableOpacity
-              onPress={() => setMenuOpen(!menuOpen)}
-              hitSlop={12}
-              style={styles.sortButton}
-            >
-              <Ionicons name="swap-vertical" size={22} color="#FFFFFF" />
-            </TouchableOpacity>
+            <View style={styles.headerActions}>
+              <TouchableOpacity
+                onPress={handleOpenControlCenter}
+                hitSlop={8}
+                style={styles.controlCenterBtn}
+                accessibilityLabel="Open Habitat Control Center"
+              >
+                <Ionicons name="pulse" size={20} color="#FFFFFF" />
+                {activeAlerts > 0 && (
+                  <View
+                    style={[
+                      styles.headerBadge,
+                      { backgroundColor: criticalCount > 0 ? '#C62828' : '#FFD54F' },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.headerBadgeText,
+                        { color: criticalCount > 0 ? '#FFFFFF' : '#212121' },
+                      ]}
+                    >
+                      {activeAlerts}
+                    </Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => setMenuOpen(!menuOpen)}
+                hitSlop={8}
+                style={styles.sortButton}
+                accessibilityLabel="Sort Habitats"
+              >
+                <Ionicons name="swap-vertical" size={22} color="#FFFFFF" />
+              </TouchableOpacity>
+            </View>
           ),
         }}
       />
@@ -107,6 +149,40 @@ export default function ListingsScreen() {
         </View>
       ) : (
         <View style={styles.content}>
+          {/* Quick Settlement Incident Notification Banner */}
+          {activeAlerts > 0 && (
+            <TouchableOpacity
+              style={[
+                styles.incidentBanner,
+                { backgroundColor: criticalCount > 0 ? '#FFEBEE' : '#FFF3E0' },
+              ]}
+              onPress={handleOpenControlCenter}
+              activeOpacity={0.85}
+            >
+              <Ionicons
+                name={criticalCount > 0 ? 'alert-circle' : 'warning-outline'}
+                size={18}
+                color={criticalCount > 0 ? '#C62828' : '#EF6C00'}
+              />
+              <Text
+                style={[
+                  styles.incidentBannerText,
+                  { color: criticalCount > 0 ? '#C62828' : '#E65100' },
+                ]}
+                numberOfLines={1}
+              >
+                {criticalCount > 0
+                  ? `🚨 ${criticalCount} Critical Telemetry Alert(s) — Tap for Control Center`
+                  : `⚠️ ${activeAlerts} Habitat Warning(s) Active — Tap for Diagnostics`}
+              </Text>
+              <Ionicons
+                name="chevron-forward"
+                size={16}
+                color={criticalCount > 0 ? '#C62828' : '#EF6C00'}
+              />
+            </TouchableOpacity>
+          )}
+
           <HabitatFilterBar />
 
           {displayedHabitats.length === 0 ? (
@@ -138,7 +214,10 @@ export default function ListingsScreen() {
               refreshControl={
                 <RefreshControl
                   refreshing={loading}
-                  onRefresh={fetchHabitats}
+                  onRefresh={() => {
+                    fetchHabitats();
+                    fetchControlData();
+                  }}
                   tintColor="#D84315"
                   colors={['#D84315']}
                 />
@@ -157,7 +236,45 @@ export default function ListingsScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FAFAFA' },
   content: { flex: 1 },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  controlCenterBtn: {
+    padding: 4,
+    position: 'relative',
+  },
+  headerBadge: {
+    position: 'absolute',
+    top: -2,
+    right: -6,
+    minWidth: 16,
+    height: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 3,
+  },
+  headerBadgeText: {
+    fontSize: 9,
+    fontWeight: '800',
+  },
   sortButton: { padding: 4 },
+  incidentBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#FFCDD2',
+    gap: 8,
+  },
+  incidentBannerText: {
+    flex: 1,
+    fontSize: 12,
+    fontWeight: '700',
+  },
   list: { paddingTop: 8, paddingBottom: 32 },
   menu: {
     position: 'absolute',
@@ -276,3 +393,4 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 });
+
