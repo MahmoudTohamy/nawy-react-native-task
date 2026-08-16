@@ -108,6 +108,6 @@ export function parseHabitat(json: RawHabitat): Habitat {
     habitability: getHabitability(lifeSupport),
   };
 
-  habitat.habitability = getHabitability(habitat.lifeSupport);
   return habitat;
 }
+
