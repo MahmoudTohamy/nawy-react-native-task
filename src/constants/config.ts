@@ -1,4 +1,5 @@
 export const AppConfig = {
-  /** Guards access to habitat details. Embedded in plain source — not safe on Mars. */
-  accessPassphrase: 'nawy-open-sesame',
+  appName: 'Nawy Mars Habitat Registry',
+  version: '1.0.0',
+  settlementNetwork: 'Olympus-Mesh-Net',
 };
