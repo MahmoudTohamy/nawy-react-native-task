@@ -261,4 +261,107 @@ describe('Mars-era Habitat Suite — Deliverable A', () => {
       expect(getByText('Data issue detected')).toBeTruthy();
     });
   });
+
+  describe('Innovation Feature — Deliverable B (Habitat Control Center)', () => {
+    describe('Alerts Parsing & Triage', () => {
+      test('defensively parses alerts with unknown severity and categories', () => {
+        const { parseAlert } = require('../services/controlService');
+        const alert = parseAlert({
+          id: 'test_alert_1',
+          severity: 'UNKNOWN_SEV',
+          category: 'invalid_cat',
+          title: 'Custom Alert',
+        });
+
+        expect(alert.severity).toBe('info');
+        expect(alert.category).toBe('structural');
+        expect(alert.status).toBe('active');
+        expect(alert.suggestedAction).toBe('Monitor colony diagnostics dashboard.');
+      });
+    });
+
+    describe('Energy Status & Power Balance Calculation', () => {
+      test('correctly computes battery hours remaining and power-save reduction', () => {
+        const { parseEnergyStatus } = require('../services/controlService');
+        const energy = parseEnergyStatus({
+          solar_generation_kw: 10,
+          base_consumption_kw: 20,
+          power_save_mode: false,
+          battery_pct: 50,
+          battery_capacity_kwh: 100,
+        });
+
+        // Available kWh = (50/100)*100 = 50 kWh
+        // Net draw = 20 - 10 = 10 kW
+        // Battery hours = 50 / 10 = 5.0 hrs
+        expect(energy.batteryHoursRemaining).toBe(5.0);
+        expect(energy.dustStormRisk).toBe('nominal');
+        expect(energy.dayNightPhase).toBe('day');
+      });
+    });
+
+    describe('Control Store State Transitions', () => {
+      test('dismisses and snoozes active alerts', () => {
+        const { useControlStore } = require('../stores/controlStore');
+        const { parseAlert } = require('../services/controlService');
+
+        const mockAlerts = [
+          parseAlert({
+            id: 'alt_1',
+            title: 'Critical Leak',
+            severity: 'critical',
+            status: 'active',
+            timestamp_sol: 1200,
+          }),
+          parseAlert({
+            id: 'alt_2',
+            title: 'Solar Dust',
+            severity: 'warning',
+            status: 'active',
+            timestamp_sol: 1200,
+          }),
+        ];
+
+        useControlStore.setState({ alerts: mockAlerts });
+        expect(useControlStore.getState().getActiveAlertCount()).toBe(2);
+        expect(useControlStore.getState().getCriticalAlertCount()).toBe(1);
+
+        // Dismiss alt_1
+        useControlStore.getState().dismissAlert('alt_1');
+        expect(useControlStore.getState().getActiveAlertCount()).toBe(1);
+        expect(useControlStore.getState().getCriticalAlertCount()).toBe(0);
+
+        // Snooze alt_2
+        useControlStore.getState().snoozeAlert('alt_2');
+        const snoozed = useControlStore.getState().alerts.find((a: any) => a.id === 'alt_2');
+        expect(snoozed.status).toBe('snoozed');
+        expect(snoozed.snoozedUntilSol).toBe(1202);
+      });
+
+      test('toggles emergency power saving mode and recalculates grid reserves', () => {
+        const { useControlStore } = require('../stores/controlStore');
+        const { parseEnergyStatus } = require('../services/controlService');
+
+        const initialEnergy = parseEnergyStatus({
+          solar_generation_kw: 0,
+          base_consumption_kw: 30,
+          power_save_mode: false,
+          battery_pct: 60,
+          battery_capacity_kwh: 200,
+        });
+
+        useControlStore.setState({ energy: initialEnergy });
+        expect(useControlStore.getState().energy?.powerSaveMode).toBe(false);
+
+        // Toggle power save on
+        useControlStore.getState().togglePowerSaveMode();
+        expect(useControlStore.getState().energy?.powerSaveMode).toBe(true);
+        // Base consumption drops from 30 to 19.5 kW -> battery hours increase
+        expect(useControlStore.getState().energy?.batteryHoursRemaining).toBeGreaterThan(
+          initialEnergy.batteryHoursRemaining
+        );
+      });
+    });
+  });
 });
+
