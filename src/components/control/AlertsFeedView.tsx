@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useControlStore } from '../../stores/controlStore';
 import { AlertCategory, AlertSeverity, HabitatAlert } from '../../types/control';
 
@@ -119,7 +119,7 @@ export default function AlertsFeedView() {
 
   return (
     <View style={styles.container}>
-      {/* Filter Tabs */}
+      {/* Fixed Filter Tabs */}
       <View style={styles.filtersContainer}>
         <TouchableOpacity
           style={[styles.filterChip, severityFilter === 'all' && styles.filterChipActive]}
@@ -179,20 +179,24 @@ export default function AlertsFeedView() {
         </TouchableOpacity>
       </View>
 
-      {/* Alerts Stream */}
-      {filteredAlerts.length === 0 ? (
-        <View style={styles.emptyState}>
-          <Ionicons name="shield-checkmark-outline" size={54} color="#2E7D32" />
-          <Text style={styles.emptyTitle}>All Clear — No Active Incidents</Text>
-          <Text style={styles.emptySubtitle}>
-            {severityFilter === 'all'
-              ? 'Settlement diagnostics report all habitat life-support loops running within nominal bounds.'
-              : `No alerts found with ${severityFilter} severity rating.`}
-          </Text>
-        </View>
-      ) : (
-        <View style={styles.list}>
-          {filteredAlerts.map((alert) => (
+      {/* Scrollable Alerts Stream */}
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={true}
+      >
+        {filteredAlerts.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Ionicons name="shield-checkmark-outline" size={54} color="#2E7D32" />
+            <Text style={styles.emptyTitle}>All Clear — No Active Incidents</Text>
+            <Text style={styles.emptySubtitle}>
+              {severityFilter === 'all'
+                ? 'Settlement diagnostics report all habitat life-support loops running within nominal bounds.'
+                : `No alerts found with ${severityFilter} severity rating.`}
+            </Text>
+          </View>
+        ) : (
+          filteredAlerts.map((alert) => (
             <AlertCard
               key={alert.id}
               alert={alert}
@@ -200,16 +204,24 @@ export default function AlertsFeedView() {
               onSnooze={() => snoozeAlert(alert.id)}
               onPressHabitat={handleHabitatPress}
             />
-          ))}
-        </View>
-      )}
+          ))
+        )}
+      </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    paddingBottom: 32,
+    flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 16,
+    paddingBottom: 48,
+    gap: 12,
   },
   filtersContainer: {
     flexDirection: 'row',
@@ -220,6 +232,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#EEEEEE',
   },
+
   filterChip: {
     paddingHorizontal: 12,
     paddingVertical: 6,
