@@ -183,7 +183,7 @@ export default function AlertsFeedView() {
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={true}
+        showsVerticalScrollIndicator={false}
       >
         {filteredAlerts.length === 0 ? (
           <View style={styles.emptyState}>

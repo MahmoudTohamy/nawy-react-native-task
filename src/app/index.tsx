@@ -211,6 +211,7 @@ export default function ListingsScreen() {
               data={displayedHabitats}
               keyExtractor={(item) => item.id}
               contentContainerStyle={styles.list}
+              showsVerticalScrollIndicator={false}
               refreshControl={
                 <RefreshControl
                   refreshing={loading}

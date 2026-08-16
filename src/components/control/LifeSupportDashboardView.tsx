@@ -103,7 +103,11 @@ export default function LifeSupportDashboardView() {
   const verdictStyle = HABITABILITY_COLORS[overallHabitability];
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
+    >
       {/* Settlement Aggregate Overview */}
       <View style={styles.settlementCard}>
         <Text style={styles.settlementTitle}>Colony Habitat Fleet Status</Text>

@@ -37,7 +37,11 @@ export default function EnergyStatusView() {
   const isSurplus = Number(netDelta) >= 0;
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
+    >
       {/* Sol Day/Night Cycle Banner */}
       <View style={[styles.phaseBanner, { backgroundColor: phase.bg }]}>
         <View style={styles.phaseIconCircle}>

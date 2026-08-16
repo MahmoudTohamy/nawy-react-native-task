@@ -83,7 +83,11 @@ export default function HabitatDetailScreen() {
   const isAvailable = habitat.status === 'available';
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.scrollContent}
+      showsVerticalScrollIndicator={false}
+    >
       <Stack.Screen
         options={{
           title: habitat.title,
