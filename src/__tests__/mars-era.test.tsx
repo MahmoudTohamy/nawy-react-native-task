@@ -233,7 +233,7 @@ describe('Mars-era Habitat Suite — Deliverable A', () => {
       );
 
       expect(getByText('Alpha Dome 3-Berth')).toBeTruthy();
-      expect(getByText('450 CR/sol')).toBeTruthy();
+      expect(getByText('450 CR')).toBeTruthy();
       expect(getByText('SAFE')).toBeTruthy();
       expect(getByText('O₂ 21.2%')).toBeTruthy();
       expect(getByText('98 kPa')).toBeTruthy();
@@ -340,7 +340,7 @@ describe('Mars-era Habitat Suite — Deliverable A', () => {
 
       test('toggles emergency power saving mode and recalculates grid reserves', () => {
         const { useControlStore } = require('../stores/controlStore');
-        const { parseEnergyStatus } = require('../services/controlService');
+        const { parseEnergyStatus, computeBatteryHoursRemaining } = require('../services/controlService');
 
         const initialEnergy = parseEnergyStatus({
           solar_generation_kw: 0,
@@ -356,7 +356,15 @@ describe('Mars-era Habitat Suite — Deliverable A', () => {
         // Toggle power save on
         useControlStore.getState().togglePowerSaveMode();
         expect(useControlStore.getState().energy?.powerSaveMode).toBe(true);
-        // Base consumption drops from 30 to 19.5 kW -> battery hours increase
+        expect(useControlStore.getState().energy?.batteryHoursRemaining).toBe(
+          computeBatteryHoursRemaining({
+            solarGenerationKw: 0,
+            baseConsumptionKw: 30,
+            powerSaveMode: true,
+            batteryPct: 60,
+            batteryCapacityKwh: 200,
+          })
+        );
         expect(useControlStore.getState().energy?.batteryHoursRemaining).toBeGreaterThan(
           initialEnergy.batteryHoursRemaining
         );

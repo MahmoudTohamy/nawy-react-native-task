@@ -75,7 +75,7 @@ Rather than picking a single isolated screen, we implemented a unified **Martian
 * **Dust Storm Power-Saving Mode**: Interactive toggle switch that throttles non-essential loads (saving ~35% consumption) and dynamically extends battery reserve hours.
 
 ### Strategic Differentiation for Nawy
-On Mars, real estate cannot end at the lease signing. Nawy evolves from a passive listing directory into the **operational life-support operating system** for colony residents, ensuring safety, proactive incident triage, and energy resilience.
+On Mars, real estate cannot end at the sale. Nawy evolves from a passive listing directory into the **operational life-support operating system** for colony residents, ensuring safety, proactive incident triage, and energy resilience.
 
 ---
 

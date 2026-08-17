@@ -78,7 +78,7 @@
     "bathrooms": 4,
     "volume_m3": 920,
     "image_url": null,
-    "description": "Expansive multi-module family compound with private greenhouse dome and exercise ring. Gated airlock cluster with 24/7 settlement security. Lease terms upon request — contact settlement agent.",
+    "description": "Expansive multi-module family compound with private greenhouse dome and exercise ring. Gated airlock cluster with 24/7 settlement security. Sale terms upon request — contact settlement agent.",
     "amenities": ["Greenhouse Module", "Exercise Ring", "Multi-Airlock", "Garage Bay"],
     "status": "available",
     "listed_at_sol": 1100,
@@ -101,7 +101,7 @@
     "bathrooms": 1,
     "volume_m3": 310,
     "image_url": null,
-    "description": "Dual-berth research habitat adjacent to the Syrtis Major lab cluster. Currently occupied by a geology team — strong lease renewal expected. Excellent for long-term research postings.",
+    "description": "Dual-berth research habitat adjacent to the Syrtis Major lab cluster. Currently occupied by a geology team — strong sale interest expected. Excellent for long-term research postings.",
     "status": "available",
     "listed_at_sol": 450,
     "life_support": {

@@ -5,11 +5,11 @@ import { parseHabitat } from '../utils/parseHabitat';
 let cachedHabitats: Habitat[] | null = null;
 
 export async function fetchHabitats(): Promise<Habitat[]> {
-  await new Promise((resolve) => setTimeout(resolve, 800));
-
   if (cachedHabitats) {
     return cachedHabitats;
   }
+
+  await new Promise((resolve) => setTimeout(resolve, 800));
 
   try {
     cachedHabitats = (rawData as RawHabitat[]).map((item) => parseHabitat(item));

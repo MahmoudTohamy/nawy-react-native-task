@@ -80,7 +80,7 @@ function parseLeaseCredits(raw: unknown, issues: string[]): number | null {
 
 function formatLeaseLabel(credits: number | null): string {
   if (credits == null) return 'Credits unavailable';
-  return `${credits} CR/sol`;
+  return `${credits} CR`;
 }
 
 export function parseHabitat(json: RawHabitat): Habitat {
