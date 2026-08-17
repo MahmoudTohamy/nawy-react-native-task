@@ -1,10 +1,8 @@
 import { useCallback, useMemo } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View, ViewStyle } from 'react-native';
 import { SEVERITY_FILTERS } from '../../constants/control';
-import { AlertSeverityFilter } from '../../types/control';
+import { AlertSeverityCounts, AlertSeverityFilter } from '../../types/control';
 import { neutral, radius, spacing } from '../../theme';
-
-type FilterCounts = Record<AlertSeverityFilter, number>;
 
 type ChipProps = {
   value: AlertSeverityFilter;
@@ -46,7 +44,7 @@ function AlertSeverityFilterChip({
 
 type Props = {
   selected: AlertSeverityFilter;
-  counts: FilterCounts;
+  counts: AlertSeverityCounts;
   onSelect: (value: AlertSeverityFilter) => void;
 };
 

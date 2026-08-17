@@ -4,6 +4,19 @@ export type HabitatStatus = 'available' | 'pending' | 'occupied' | 'maintenance'
 
 export type Habitability = 'safe' | 'warning' | 'critical';
 
+export type VitalMetric = 'o2' | 'pressure' | 'temp' | 'rad' | 'power' | 'scrubber';
+
+export type CompareSide = 'left' | 'right' | 'tie';
+
+export type CompareMetric =
+  | 'habitability'
+  | 'price'
+  | 'volume'
+  | 'berths'
+  | 'baths'
+  | 'o2'
+  | 'pressure';
+
 export type LifeSupport = {
   o2Level: number;
   cabinPressureKpa: number;

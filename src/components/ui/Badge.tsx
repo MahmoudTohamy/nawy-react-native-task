@@ -1,8 +1,7 @@
 import { StyleSheet, Text, View, ViewStyle } from 'react-native';
-import { BADGE_TONE_STYLES, BadgeTone } from '../../constants/badge';
+import { BADGE_TONE_STYLES } from '../../constants/badge';
 import { radius, spacing } from '../../theme';
-
-export type { BadgeTone };
+import { BadgeTone } from '../../types/ui';
 
 type Props = {
   label: string;

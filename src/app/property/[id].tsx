@@ -9,13 +9,8 @@ import { getHabitatById } from '../../services/habitatService';
 import { useAccessStore } from '../../stores/accessStore';
 import { useHabitatStore } from '../../stores/habitatStore';
 import { brand, neutral, radius, spacing, status } from '../../theme';
-import { Co2ScrubberStatus, LifeSupport } from '../../types/habitat';
-import {
-  HABITABILITY_COLORS,
-  VitalMetric,
-  getMetricHabitability,
-  metricToneColor,
-} from '../../utils/habitatSafety';
+import { Co2ScrubberStatus, LifeSupport, VitalMetric } from '../../types/habitat';
+import { HABITABILITY_COLORS, getMetricHabitability, metricToneColor } from '../../utils/habitatSafety';
 
 function TelemetryTile({
   icon,

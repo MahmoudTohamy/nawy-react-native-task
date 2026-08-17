@@ -1,6 +1,5 @@
 import { brand, neutral, status } from '../theme';
-
-export type BadgeTone = 'safe' | 'warning' | 'critical' | 'info' | 'neutral';
+import { BadgeTone } from '../types/ui';
 
 export const BADGE_TONE_STYLES: Record<BadgeTone, { bg: string; text: string }> = {
   safe: { bg: status.safe.chip, text: status.safe.text },

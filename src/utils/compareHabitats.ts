@@ -1,15 +1,4 @@
-import { Habitat, Habitability } from '../types/habitat';
-
-export type CompareSide = 'left' | 'right' | 'tie';
-
-export type CompareMetric =
-  | 'habitability'
-  | 'price'
-  | 'volume'
-  | 'berths'
-  | 'baths'
-  | 'o2'
-  | 'pressure';
+import { CompareMetric, CompareSide, Habitat, Habitability } from '../types/habitat';
 
 const HABITABILITY_RANK: Record<Habitability, number> = {
   safe: 0,

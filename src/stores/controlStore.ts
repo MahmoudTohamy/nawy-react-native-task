@@ -2,8 +2,6 @@ import { create } from 'zustand';
 import { computeBatteryHoursRemaining, fetchAlerts, fetchEnergyStatus } from '../services/controlService';
 import { AlertSeverityFilter, ControlTab, EnergyStatus, HabitatAlert } from '../types/control';
 
-export type { ControlTab };
-
 export function countActiveAlerts(alerts: HabitatAlert[]): number {
   return alerts.reduce((count, alert) => (alert.status === 'active' ? count + 1 : count), 0);
 }

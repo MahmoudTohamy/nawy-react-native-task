@@ -1,8 +1,4 @@
-import { HabitatAlert, AlertSeverityFilter } from '../types/control';
-
-export type { AlertSeverityFilter };
-
-export type AlertSeverityCounts = Record<AlertSeverityFilter, number>;
+import { AlertSeverityCounts, AlertSeverityFilter, HabitatAlert } from '../types/control';
 
 export function getActiveAlerts(alerts: HabitatAlert[]): HabitatAlert[] {
   return alerts.filter((alert) => alert.status === 'active');

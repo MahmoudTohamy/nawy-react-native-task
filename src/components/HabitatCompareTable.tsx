@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { brand, neutral, radius, spacing } from '../theme';
-import { Habitat } from '../types/habitat';
-import { CompareMetric, getCompareWinners } from '../utils/compareHabitats';
+import { CompareMetric, Habitat } from '../types/habitat';
+import { getCompareWinners } from '../utils/compareHabitats';
 import { HABITABILITY_COLORS } from '../utils/habitatSafety';
 import { Badge } from './ui';
 

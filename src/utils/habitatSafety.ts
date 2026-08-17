@@ -1,7 +1,5 @@
 import { status } from '../theme';
-import { Habitability, LifeSupport } from '../types/habitat';
-
-export type VitalMetric = 'o2' | 'pressure' | 'temp' | 'rad' | 'power' | 'scrubber';
+import { Habitability, LifeSupport, VitalMetric } from '../types/habitat';
 
 const VITAL_METRICS: VitalMetric[] = ['o2', 'pressure', 'temp', 'rad', 'power', 'scrubber'];
 const RANK: Record<Habitability, number> = { safe: 0, warning: 1, critical: 2 };
