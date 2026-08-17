@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useEffect } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useEffect, useMemo } from 'react';
+import { ScrollView, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import FavoriteButton from '../../components/FavoriteButton';
 import HabitatImage from '../../components/HabitatImage';
 import { Badge, Button, Card, Chip, EmptyState } from '../../components/ui';
@@ -9,8 +9,13 @@ import { getHabitatById } from '../../services/habitatService';
 import { useAccessStore } from '../../stores/accessStore';
 import { useHabitatStore } from '../../stores/habitatStore';
 import { brand, neutral, radius, spacing, status } from '../../theme';
-import { Co2ScrubberStatus } from '../../types/habitat';
-import { HABITABILITY_COLORS, getMetricHabitability, metricToneColor } from '../../utils/habitatSafety';
+import { Co2ScrubberStatus, LifeSupport } from '../../types/habitat';
+import {
+  HABITABILITY_COLORS,
+  VitalMetric,
+  getMetricHabitability,
+  metricToneColor,
+} from '../../utils/habitatSafety';
 
 function TelemetryTile({
   icon,
@@ -18,15 +23,17 @@ function TelemetryTile({
   value,
   statusColor = brand.primary,
   safeRange,
+  style,
 }: {
   icon: keyof typeof Ionicons.glyphMap;
   label: string;
   value: string;
   statusColor?: string;
   safeRange?: string;
+  style?: ViewStyle;
 }) {
   return (
-    <View style={styles.telemetryTile}>
+    <View style={[styles.telemetryTile, style]}>
       <View style={styles.tileHeader}>
         <Ionicons name={icon} size={20} color={statusColor} />
         <Text style={styles.tileLabel}>{label}</Text>
@@ -47,6 +54,68 @@ function getScrubberDetails(scrubberStatus: Co2ScrubberStatus) {
   return { label: 'Failed', color: status.critical.text, icon: 'close-circle' as const };
 }
 
+type TelemetryMetricConfig = {
+  key: string;
+  metric: VitalMetric;
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  safeRange: string;
+  format: (lifeSupport: LifeSupport) => string;
+};
+
+const TELEMETRY_METRICS: TelemetryMetricConfig[] = [
+  {
+    key: 'o2',
+    metric: 'o2',
+    icon: 'water-outline',
+    label: 'O₂ Level',
+    safeRange: 'Safe: 19.5–23.5%',
+    format: (lifeSupport) => `${lifeSupport.o2Level.toFixed(1)}%`,
+  },
+  {
+    key: 'pressure',
+    metric: 'pressure',
+    icon: 'speedometer-outline',
+    label: 'Cabin Pressure',
+    safeRange: 'Safe: 70–102 kPa',
+    format: (lifeSupport) => `${lifeSupport.cabinPressureKpa} kPa`,
+  },
+  {
+    key: 'temp',
+    metric: 'temp',
+    icon: 'thermometer-outline',
+    label: 'Temperature',
+    safeRange: 'Safe: 18–24°C',
+    format: (lifeSupport) => `${lifeSupport.temperatureC}°C`,
+  },
+  {
+    key: 'rad',
+    metric: 'rad',
+    icon: 'shield-checkmark-outline',
+    label: 'Radiation Shield',
+    safeRange: 'Safe: ≥90%',
+    format: (lifeSupport) => `${lifeSupport.radiationShieldingPct}%`,
+  },
+  {
+    key: 'power',
+    metric: 'power',
+    icon: 'battery-charging-outline',
+    label: 'Power Reserve',
+    safeRange: 'Safe: ≥4 hrs',
+    format: (lifeSupport) => `${lifeSupport.powerReserveHrs.toFixed(1)} hrs`,
+  },
+  {
+    key: 'scrubber',
+    metric: 'scrubber',
+    icon: 'repeat-outline',
+    label: 'CO₂ Scrubber',
+    safeRange: 'Req: Active',
+    format: (lifeSupport) => getScrubberDetails(lifeSupport.co2ScrubberStatus).label,
+  },
+];
+
+const LAST_TELEMETRY_INDEX = TELEMETRY_METRICS.length - 1;
+
 const COMPARE_LABEL = 'Compare with another habitat';
 
 export default function HabitatDetailScreen() {
@@ -56,6 +125,28 @@ export default function HabitatDetailScreen() {
   const isUnlocked = useAccessStore((s) => (id ? s.unlockedIds.has(id) : false));
   const storeHabitat = useHabitatStore((s) => s.habitats.find((h) => h.id === id));
   const habitat = storeHabitat || (id ? getHabitatById(id) : undefined);
+
+  const telemetryTiles = useMemo(() => {
+    if (!habitat) return [];
+
+    return TELEMETRY_METRICS.map((tile, index) => {
+      const isLast = index === LAST_TELEMETRY_INDEX;
+      const scrubber = isLast ? getScrubberDetails(habitat.lifeSupport.co2ScrubberStatus) : null;
+      const statusColor =
+        scrubber?.color ??
+        metricToneColor(getMetricHabitability(tile.metric, habitat.lifeSupport));
+
+      return {
+        key: tile.key,
+        icon: scrubber?.icon ?? tile.icon,
+        label: tile.label,
+        value: tile.format(habitat.lifeSupport),
+        safeRange: tile.safeRange,
+        statusColor,
+        style: isLast ? { borderColor: statusColor } : undefined,
+      };
+    });
+  }, [habitat]);
 
   const handleCompare = useCallback(() => {
     if (!id) return;
@@ -91,7 +182,6 @@ export default function HabitatDetailScreen() {
   }
 
   const habitabilityStyle = HABITABILITY_COLORS[habitat.habitability];
-  const scrubber = getScrubberDetails(habitat.lifeSupport.co2ScrubberStatus);
   const isAvailable = habitat.status === 'available';
 
   return (
@@ -162,48 +252,17 @@ export default function HabitatDetailScreen() {
           </View>
 
           <View style={styles.telemetryGrid}>
-            <TelemetryTile
-              icon="water-outline"
-              label="O₂ Level"
-              value={`${habitat.lifeSupport.o2Level.toFixed(1)}%`}
-              safeRange="Safe: 19.5–23.5%"
-              statusColor={metricToneColor(getMetricHabitability('o2', habitat.lifeSupport))}
-            />
-            <TelemetryTile
-              icon="speedometer-outline"
-              label="Cabin Pressure"
-              value={`${habitat.lifeSupport.cabinPressureKpa} kPa`}
-              safeRange="Safe: 70–102 kPa"
-              statusColor={metricToneColor(getMetricHabitability('pressure', habitat.lifeSupport))}
-            />
-            <TelemetryTile
-              icon="thermometer-outline"
-              label="Temperature"
-              value={`${habitat.lifeSupport.temperatureC}°C`}
-              safeRange="Safe: 18–24°C"
-              statusColor={metricToneColor(getMetricHabitability('temp', habitat.lifeSupport))}
-            />
-            <TelemetryTile
-              icon="shield-checkmark-outline"
-              label="Radiation Shield"
-              value={`${habitat.lifeSupport.radiationShieldingPct}%`}
-              safeRange="Safe: ≥90%"
-              statusColor={metricToneColor(getMetricHabitability('rad', habitat.lifeSupport))}
-            />
-            <TelemetryTile
-              icon="battery-charging-outline"
-              label="Power Reserve"
-              value={`${habitat.lifeSupport.powerReserveHrs.toFixed(1)} hrs`}
-              safeRange="Safe: ≥4 hrs"
-              statusColor={metricToneColor(getMetricHabitability('power', habitat.lifeSupport))}
-            />
-            <TelemetryTile
-              icon={scrubber.icon}
-              label="CO₂ Scrubber"
-              value={scrubber.label}
-              safeRange="Req: Active"
-              statusColor={scrubber.color}
-            />
+            {telemetryTiles.map((tile) => (
+              <TelemetryTile
+                key={tile.key}
+                icon={tile.icon}
+                label={tile.label}
+                value={tile.value}
+                safeRange={tile.safeRange}
+                statusColor={tile.statusColor}
+                style={tile.style}
+              />
+            ))}
           </View>
         </Card>
 
