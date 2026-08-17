@@ -433,6 +433,7 @@ describe('Mars-era Habitat Suite — Deliverable A', () => {
       test('dismisses and snoozes active alerts', () => {
         const { useControlStore } = require('../stores/controlStore');
         const { parseAlert } = require('../services/controlService');
+        const { getAlertSnapshot } = require('../utils/filterAlerts');
 
         const mockAlerts = [
           parseAlert({
@@ -452,13 +453,13 @@ describe('Mars-era Habitat Suite — Deliverable A', () => {
         ];
 
         useControlStore.setState({ alerts: mockAlerts });
-        expect(useControlStore.getState().getActiveAlertCount()).toBe(2);
-        expect(useControlStore.getState().getCriticalAlertCount()).toBe(1);
+        expect(getAlertSnapshot(useControlStore.getState().alerts).counts.all).toBe(2);
+        expect(getAlertSnapshot(useControlStore.getState().alerts).counts.critical).toBe(1);
 
         // Dismiss alt_1
         useControlStore.getState().dismissAlert('alt_1');
-        expect(useControlStore.getState().getActiveAlertCount()).toBe(1);
-        expect(useControlStore.getState().getCriticalAlertCount()).toBe(0);
+        expect(getAlertSnapshot(useControlStore.getState().alerts).counts.all).toBe(1);
+        expect(getAlertSnapshot(useControlStore.getState().alerts).counts.critical).toBe(0);
 
         // Snooze alt_2
         useControlStore.getState().snoozeAlert('alt_2');

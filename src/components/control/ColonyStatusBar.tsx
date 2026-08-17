@@ -1,7 +1,7 @@
-import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { countActiveAlerts, countCriticalAlerts, useControlStore } from '../../stores/controlStore';
+import { useControlStore } from '../../stores/controlStore';
 import { brand, neutral, spacing, status } from '../../theme';
+import { getAlertSnapshot } from '../../utils/filterAlerts';
 
 const SAFETY_LABEL = 'COLONY SAFETY';
 const INCIDENTS_LABEL = 'ACTIVE INCIDENTS';
@@ -10,24 +10,18 @@ const TELEMETRY_VALUE = 'Live · Mesh-Net';
 const ALL_SAFE_LABEL = 'ALL SAFE';
 
 export default function ColonyStatusBar() {
-  const activeAlerts = useControlStore((s) => countActiveAlerts(s.alerts));
-  const criticalCount = useControlStore((s) => countCriticalAlerts(s.alerts));
-
-  const safety = useMemo(
-    () => ({
-      color: criticalCount > 0 ? status.critical.text : status.safe.text,
-      label: criticalCount > 0 ? `${criticalCount} CRITICAL` : ALL_SAFE_LABEL,
-    }),
-    [criticalCount],
-  );
+  const activeAlerts = useControlStore((s) => getAlertSnapshot(s.alerts).counts.all);
+  const criticalCount = useControlStore((s) => getAlertSnapshot(s.alerts).counts.critical);
+  const safetyColor = criticalCount > 0 ? status.critical.text : status.safe.text;
+  const safetyLabel = criticalCount > 0 ? `${criticalCount} CRITICAL` : ALL_SAFE_LABEL;
 
   return (
     <View style={styles.topBar}>
       <View style={styles.topBarItem}>
         <Text style={styles.topBarLabel}>{SAFETY_LABEL}</Text>
         <View style={styles.statusIndicatorRow}>
-          <View style={[styles.pulseDot, { backgroundColor: safety.color }]} />
-          <Text style={[styles.statusIndicatorText, { color: safety.color }]}>{safety.label}</Text>
+          <View style={[styles.pulseDot, { backgroundColor: safetyColor }]} />
+          <Text style={[styles.statusIndicatorText, { color: safetyColor }]}>{safetyLabel}</Text>
         </View>
       </View>
 

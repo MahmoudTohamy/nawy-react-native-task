@@ -26,6 +26,11 @@ export type HabitatAlert = {
   snoozedUntilSol?: number;
 };
 
+export type AlertSnapshot = {
+  activeAlerts: HabitatAlert[];
+  counts: AlertSeverityCounts;
+};
+
 export type DayNightPhase = 'day' | 'dusk' | 'night' | 'dawn';
 export type DustStormRisk = 'nominal' | 'moderate' | 'severe';
 

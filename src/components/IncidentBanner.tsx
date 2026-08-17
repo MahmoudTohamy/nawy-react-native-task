@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { StyleSheet, Text, TouchableOpacity } from 'react-native';
-import { countActiveAlerts, countCriticalAlerts, useControlStore } from '../stores/controlStore';
+import { useControlStore } from '../stores/controlStore';
 import { spacing, status } from '../theme';
+import { getAlertSnapshot } from '../utils/filterAlerts';
 
 const BANNER = {
   critical: {
@@ -23,8 +24,8 @@ const BANNER = {
 
 export default function IncidentBanner() {
   const router = useRouter();
-  const activeAlerts = useControlStore((s) => countActiveAlerts(s.alerts));
-  const criticalCount = useControlStore((s) => countCriticalAlerts(s.alerts));
+  const activeAlerts = useControlStore((s) => getAlertSnapshot(s.alerts).counts.all);
+  const criticalCount = useControlStore((s) => getAlertSnapshot(s.alerts).counts.critical);
 
   if (activeAlerts === 0) return null;
 

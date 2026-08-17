@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { fetchHabitats } from '../services/habitatService';
 import { DEFAULT_FILTERS, Habitat, HabitatFilters, SortKey } from '../types/habitat';
+import { mergeHabitats } from '../utils/mergeHabitats';
 
 type HabitatState = {
   habitats: Habitat[];
@@ -24,7 +25,10 @@ export const useHabitatStore = create<HabitatState>((set) => ({
     set({ loading: true, error: null });
     try {
       const habitats = await fetchHabitats();
-      set({ habitats, loading: false });
+      set((state) => ({
+        habitats: mergeHabitats(state.habitats, habitats),
+        loading: false,
+      }));
     } catch {
       set({ loading: false, error: 'Failed to load habitats. Please try again.' });
     }

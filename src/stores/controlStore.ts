@@ -1,17 +1,7 @@
 import { create } from 'zustand';
 import { computeBatteryHoursRemaining, fetchAlerts, fetchEnergyStatus } from '../services/controlService';
 import { AlertSeverityFilter, ControlTab, EnergyStatus, HabitatAlert } from '../types/control';
-
-export function countActiveAlerts(alerts: HabitatAlert[]): number {
-  return alerts.reduce((count, alert) => (alert.status === 'active' ? count + 1 : count), 0);
-}
-
-export function countCriticalAlerts(alerts: HabitatAlert[]): number {
-  return alerts.reduce(
-    (count, alert) => (alert.status === 'active' && alert.severity === 'critical' ? count + 1 : count),
-    0,
-  );
-}
+import { mergeAlerts } from '../utils/mergeAlerts';
 
 type ControlState = {
   activeTab: ControlTab;
@@ -27,8 +17,6 @@ type ControlState = {
   dismissAlert: (id: string) => void;
   snoozeAlert: (id: string) => void;
   togglePowerSaveMode: () => void;
-  getActiveAlertCount: () => number;
-  getCriticalAlertCount: () => number;
 };
 
 export const useControlStore = create<ControlState>((set, get) => ({
@@ -53,17 +41,7 @@ export const useControlStore = create<ControlState>((set, get) => ({
     try {
       const [alerts, energy] = await Promise.all([fetchAlerts(), fetchEnergyStatus()]);
       set((state) => {
-        const previousById = new Map(state.alerts.map((alert) => [alert.id, alert]));
-        const mergedAlerts = alerts.map((alert) => {
-          const previous = previousById.get(alert.id);
-          if (!previous) return alert;
-          return {
-            ...alert,
-            status: previous.status,
-            snoozedUntilSol: previous.snoozedUntilSol,
-          };
-        });
-
+        const mergedAlerts = mergeAlerts(state.alerts, alerts);
         const powerSaveMode = state.energy?.powerSaveMode ?? energy.powerSaveMode;
 
         return {
@@ -118,7 +96,4 @@ export const useControlStore = create<ControlState>((set, get) => ({
         },
       };
     }),
-
-  getActiveAlertCount: () => countActiveAlerts(get().alerts),
-  getCriticalAlertCount: () => countCriticalAlerts(get().alerts),
 }));

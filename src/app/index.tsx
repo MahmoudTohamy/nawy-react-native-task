@@ -4,11 +4,12 @@ import { useEffect, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import HabitatListingsContent from '../components/HabitatListingsContent';
 import { ScreenState } from '../components/ui';
-import { countActiveAlerts, countCriticalAlerts, useControlStore } from '../stores/controlStore';
+import { useControlStore } from '../stores/controlStore';
 import { useFavoritesStore } from '../stores/favoritesStore';
 import { useHabitatStore } from '../stores/habitatStore';
 import { brand, neutral, radius, shadow, spacing, status } from '../theme';
 import { SortKey } from '../types/habitat';
+import { getAlertSnapshot } from '../utils/filterAlerts';
 
 const SORT_OPTIONS: { key: SortKey; label: string }[] = [
   { key: 'habitability', label: 'Habitability (Safe First)' },
@@ -27,8 +28,8 @@ export default function ListingsScreen() {
   const setSortBy = useHabitatStore((s) => s.setSortBy);
 
   const fetchControlData = useControlStore((s) => s.fetchControlData);
-  const activeAlerts = useControlStore((s) => countActiveAlerts(s.alerts));
-  const criticalCount = useControlStore((s) => countCriticalAlerts(s.alerts));
+  const activeAlerts = useControlStore((s) => getAlertSnapshot(s.alerts).counts.all);
+  const criticalCount = useControlStore((s) => getAlertSnapshot(s.alerts).counts.critical);
   const favCount = useFavoritesStore((s) => s.ids.size);
 
   const [menuOpen, setMenuOpen] = useState(false);

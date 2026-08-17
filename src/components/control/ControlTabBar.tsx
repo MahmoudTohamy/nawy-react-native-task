@@ -1,20 +1,16 @@
-import { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { CONTROL_TABS } from '../../constants/control';
-import { countActiveAlerts, countCriticalAlerts, useControlStore } from '../../stores/controlStore';
+import { useControlStore } from '../../stores/controlStore';
 import { neutral, radius, spacing, status } from '../../theme';
+import { getAlertSnapshot } from '../../utils/filterAlerts';
 import ControlTabButton from './ControlTabButton';
 
 export default function ControlTabBar() {
   const activeTab = useControlStore((s) => s.activeTab);
   const setActiveTab = useControlStore((s) => s.setActiveTab);
-  const activeAlerts = useControlStore((s) => countActiveAlerts(s.alerts));
-  const criticalCount = useControlStore((s) => countCriticalAlerts(s.alerts));
-
-  const alertBadgeColor = useMemo(
-    () => (criticalCount > 0 ? status.critical.text : status.warning.text),
-    [criticalCount],
-  );
+  const activeAlerts = useControlStore((s) => getAlertSnapshot(s.alerts).counts.all);
+  const criticalCount = useControlStore((s) => getAlertSnapshot(s.alerts).counts.critical);
+  const alertBadgeColor = criticalCount > 0 ? status.critical.text : status.warning.text;
 
   return (
     <View style={styles.segmentedTabBar} accessibilityRole="tablist">
