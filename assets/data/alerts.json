@@ -1,0 +1,72 @@
+[
+  {
+    "id": "alert_001",
+    "habitat_id": "prop_004",
+    "habitat_title": "Ares Valley Research Sub-Dome",
+    "sector": "Sector 4",
+    "severity": "critical",
+    "category": "life_support",
+    "title": "CO₂ Scrubber Secondary Stage Failed",
+    "message": "Scrubber system dropped to critical status. Carbon dioxide concentration rising at 0.04 kPa/hr.",
+    "suggested_action": "Switch to backup lithium hydroxide canisters and evacuate non-essential crew.",
+    "timestamp_sol": 1248,
+    "timestamp_time": "14:15 MST",
+    "status": "active"
+  },
+  {
+    "id": "alert_002",
+    "habitat_id": "prop_002",
+    "habitat_title": "Valles Marineris Ridge Suite",
+    "sector": "Sector 2",
+    "severity": "warning",
+    "category": "life_support",
+    "title": "Airlock Seal Micro-Pressure Depressurization",
+    "message": "Outer airlock chamber seal pressure dropped 5.2% below nominal threshold (68 kPa detected).",
+    "suggested_action": "Inspect silicone gasket seal and run automated airlock pressure cycle test.",
+    "timestamp_sol": 1248,
+    "timestamp_time": "11:40 MST",
+    "status": "active"
+  },
+  {
+    "id": "alert_003",
+    "habitat_id": "prop_005",
+    "habitat_title": "Utopia Planitia Subsurface Vault",
+    "sector": "Sector 9",
+    "severity": "warning",
+    "category": "energy",
+    "title": "Solar Array Dust Buildup — Output Reduced by 28%",
+    "message": "Photovoltaic farm efficiency degraded due to atmospheric fine dust deposition.",
+    "suggested_action": "Trigger electrostatic cleaning pulse or deploy automated sweep rovers.",
+    "timestamp_sol": 1247,
+    "timestamp_time": "19:05 MST",
+    "status": "active"
+  },
+  {
+    "id": "alert_004",
+    "habitat_id": "prop_001",
+    "habitat_title": "Olympus Mons Habitat 4B",
+    "sector": "Sector 7",
+    "severity": "info",
+    "category": "weather",
+    "title": "Regional Dust Front Approaching (Sol 1251)",
+    "message": "Orbital meteorology detected class-2 dust storm moving southwest toward Sector 7.",
+    "suggested_action": "Top off battery storage reserves and secure exterior sensory booms.",
+    "timestamp_sol": 1246,
+    "timestamp_time": "08:20 MST",
+    "status": "active"
+  },
+  {
+    "id": "alert_005",
+    "habitat_id": "prop_003",
+    "habitat_title": "Elysium Planitia Bio-Dome 12",
+    "sector": "Sector 1",
+    "severity": "info",
+    "category": "structural",
+    "title": "Hydroponics Water Recirculation Nominal",
+    "message": "Greywater recycling filtration cycle completed with 98.4% recovery efficiency.",
+    "suggested_action": "Routine nutrient balance check scheduled for next Sol.",
+    "timestamp_sol": 1245,
+    "timestamp_time": "16:00 MST",
+    "status": "active"
+  }
+]

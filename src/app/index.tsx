@@ -1,107 +1,236 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Stack, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import PropertyCard from '../components/PropertyCard';
-import { parseProperty, Property } from '../types/property';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import HabitatListingsContent from '../components/HabitatListingsContent';
+import { ScreenState } from '../components/ui';
+import { useControlStore } from '../stores/controlStore';
+import { useFavoritesStore } from '../stores/favoritesStore';
+import { useHabitatStore } from '../stores/habitatStore';
+import { brand, neutral, radius, shadow, spacing, status } from '../theme';
+import { SortKey } from '../types/habitat';
+import { getAlertSnapshot } from '../utils/filterAlerts';
 
-const SORT_OPTIONS = [
-  { key: 'price', label: 'Sort by Price' },
-  { key: 'area', label: 'Sort by Area' },
-  { key: 'date', label: 'Sort by Date Listed' },
-] as const;
-
-type SortKey = (typeof SORT_OPTIONS)[number]['key'];
+const SORT_OPTIONS: { key: SortKey; label: string }[] = [
+  { key: 'habitability', label: 'Habitability (Safe First)' },
+  { key: 'leaseCredits', label: 'Price (Low–High)' },
+  { key: 'o2Level', label: 'O₂ Level (Highest)' },
+  { key: 'listedAtSol', label: 'Sol Listed (Newest)' },
+];
 
 export default function ListingsScreen() {
   const router = useRouter();
-  const [properties, setProperties] = useState<Property[]>([]);
-  const [sortBy, setSortBy] = useState<SortKey>('price');
+  const habitatCount = useHabitatStore((s) => s.habitats.length);
+  const loading = useHabitatStore((s) => s.loading);
+  const error = useHabitatStore((s) => s.error);
+  const sortBy = useHabitatStore((s) => s.sortBy);
+  const fetchHabitats = useHabitatStore((s) => s.fetchHabitats);
+  const setSortBy = useHabitatStore((s) => s.setSortBy);
+
+  const fetchControlData = useControlStore((s) => s.fetchControlData);
+  const activeAlerts = useControlStore((s) => getAlertSnapshot(s.alerts).counts.all);
+  const criticalCount = useControlStore((s) => getAlertSnapshot(s.alerts).counts.critical);
+  const favCount = useFavoritesStore((s) => s.ids.size);
+
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
-    const load = async () => {
-      try {
-        // Simulates the latency of the Earth property feed API.
-        await new Promise((resolve) => setTimeout(resolve, 800));
-        const data = require('../../assets/data/properties.json');
-        setProperties(data.map((item: any) => parseProperty(item)));
-      } catch (e) {
-        // ignore
-      }
-    };
-    load();
-  }, []);
+    fetchHabitats();
+    fetchControlData();
+  }, [fetchHabitats, fetchControlData]);
 
-  const displayed = [...properties];
-  if (sortBy === 'price') {
-    displayed.sort((a, b) => a.price - b.price);
-  } else if (sortBy === 'area') {
-    displayed.sort((a, b) => a.area - b.area);
-  } else if (sortBy === 'date') {
-    displayed.sort((a, b) => a.listedAt.localeCompare(b.listedAt));
-  }
+  const handleOpenControlCenter = () => {
+    router.push('/control');
+  };
+
+  const handleOpenFavorites = () => {
+    router.push('/favorites');
+  };
 
   return (
     <View style={styles.container}>
       <Stack.Screen
         options={{
-          title: 'Nawy Mars',
+          title: 'Nawy Mars Habitats',
           headerRight: () => (
-            <TouchableOpacity onPress={() => setMenuOpen(!menuOpen)} hitSlop={12}>
-              <Ionicons name="swap-vertical" size={22} color="#FFFFFF" />
-            </TouchableOpacity>
+            <View style={styles.headerActions}>
+              <TouchableOpacity
+                onPress={handleOpenControlCenter}
+                hitSlop={8}
+                style={styles.controlCenterBtn}
+                accessibilityLabel="Open Habitat Control Center"
+              >
+                <Ionicons name="pulse" size={20} color={neutral.white} />
+                {activeAlerts > 0 && (
+                  <View
+                    style={[
+                      styles.headerBadge,
+                      { backgroundColor: criticalCount > 0 ? status.critical.text : status.warning.badge },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.headerBadgeText,
+                        { color: criticalCount > 0 ? neutral.white : brand.dark },
+                      ]}
+                    >
+                      {activeAlerts}
+                    </Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={handleOpenFavorites}
+                hitSlop={8}
+                style={styles.controlCenterBtn}
+                accessibilityLabel="Open favorites"
+              >
+                <Ionicons
+                  name={favCount > 0 ? 'heart' : 'heart-outline'}
+                  size={22}
+                  color={neutral.white}
+                />
+                {favCount > 0 && (
+                  <View style={[styles.headerBadge, styles.favBadge]}>
+                    <Text style={[styles.headerBadgeText, styles.favBadgeText]}>{favCount}</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => setMenuOpen(!menuOpen)}
+                hitSlop={8}
+                style={styles.sortButton}
+                accessibilityLabel="Sort Habitats"
+              >
+                <Ionicons name="swap-vertical" size={22} color={neutral.white} />
+              </TouchableOpacity>
+            </View>
           ),
         }}
       />
+
       {menuOpen && (
         <View style={styles.menu}>
-          {SORT_OPTIONS.map((option) => (
-            <TouchableOpacity
-              key={option.key}
-              style={styles.menuItem}
-              onPress={() => {
-                setSortBy(option.key);
-                setMenuOpen(false);
-              }}
-            >
-              <Text style={styles.menuLabel}>{option.label}</Text>
-            </TouchableOpacity>
-          ))}
+          <Text style={styles.menuTitle}>SORT HABITATS</Text>
+          {SORT_OPTIONS.map((option) => {
+            const isSelected = sortBy === option.key;
+            return (
+              <TouchableOpacity
+                key={option.key}
+                style={[styles.menuItem, isSelected && styles.menuItemSelected]}
+                onPress={() => {
+                  setSortBy(option.key);
+                  setMenuOpen(false);
+                }}
+              >
+                <Text style={[styles.menuLabel, isSelected && styles.menuLabelSelected]}>
+                  {option.label}
+                </Text>
+                {isSelected && <Ionicons name="checkmark" size={16} color={brand.primary} />}
+              </TouchableOpacity>
+            );
+          })}
         </View>
       )}
-      <FlatList
-        data={displayed}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.list}
-        renderItem={({ item }) => (
-          <PropertyCard
-            property={item}
-            onPress={() => router.push({ pathname: '/property/[id]', params: { id: item.id } })}
-          />
-        )}
-      />
+
+      {loading && habitatCount === 0 ? (
+        <ScreenState
+          variant="loading"
+          title="Scanning settlement habitats…"
+          subtitle="Polling Mars habitat telemetry loops"
+        />
+      ) : error && habitatCount === 0 ? (
+        <ScreenState
+          variant="error"
+          title="Telemetry Link Offline"
+          subtitle={error}
+          actionLabel="Retry Scan"
+          onRetry={fetchHabitats}
+        />
+      ) : (
+        <HabitatListingsContent />
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FAFAFA' },
-  list: { paddingTop: 8, paddingBottom: 24 },
+  container: { flex: 1, backgroundColor: neutral.background },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xl,
+  },
+  controlCenterBtn: {
+    padding: spacing.xs,
+    position: 'relative',
+  },
+  headerBadge: {
+    position: 'absolute',
+    top: -2,
+    right: -6,
+    minWidth: 16,
+    height: 16,
+    borderRadius: radius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 3,
+  },
+  headerBadgeText: {
+    fontSize: 9,
+    fontWeight: '800',
+  },
+  favBadge: {
+    backgroundColor: neutral.white,
+  },
+  favBadgeText: {
+    color: brand.primary,
+  },
+  sortButton: { padding: spacing.xs },
   menu: {
     position: 'absolute',
-    top: 4,
-    right: 8,
-    zIndex: 10,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    elevation: 4,
-    shadowColor: '#000000',
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    paddingVertical: 4,
+    top: spacing.md,
+    right: spacing.xl,
+    zIndex: 20,
+    backgroundColor: neutral.white,
+    borderRadius: radius.xl,
+    elevation: 6,
+    shadowColor: shadow.color,
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    paddingVertical: spacing.md,
+    minWidth: 220,
+    borderWidth: 1,
+    borderColor: neutral.border,
   },
-  menuItem: { paddingHorizontal: 16, paddingVertical: 10 },
-  menuLabel: { fontSize: 14 },
+  menuTitle: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: neutral.textDisabled,
+    letterSpacing: 0.8,
+    paddingHorizontal: spacing['3xl'],
+    paddingVertical: spacing.sm,
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing['3xl'],
+    paddingVertical: spacing.lg,
+  },
+  menuItemSelected: {
+    backgroundColor: brand.primaryTint,
+  },
+  menuLabel: {
+    fontSize: 13,
+    color: neutral.textSecondary,
+    fontWeight: '500',
+  },
+  menuLabelSelected: {
+    color: brand.primary,
+    fontWeight: '700',
+  },
 });
