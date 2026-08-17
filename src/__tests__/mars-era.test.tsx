@@ -242,7 +242,7 @@ describe('Mars-era Habitat Suite — Deliverable A', () => {
       expect(queryByText(/EGP/)).toBeNull();
     });
 
-    test('HabitatCard shows data issue chip for corrupted lease credits', async () => {
+    test('HabitatCard shows Credits unavailable for corrupted lease credits', async () => {
       const habitat = parseHabitat({
         id: 'prop_004',
         title: 'Corrupt Habitat',
@@ -253,12 +253,12 @@ describe('Mars-era Habitat Suite — Deliverable A', () => {
         status: 'available',
       });
 
-      const { getByText } = await render(
+      const { getByText, queryByText } = await render(
         <HabitatCard habitat={habitat} onPress={() => {}} />
       );
 
       expect(getByText('Credits unavailable')).toBeTruthy();
-      expect(getByText('Data issue detected')).toBeTruthy();
+      expect(queryByText(/Data issue/)).toBeNull();
     });
   });
 

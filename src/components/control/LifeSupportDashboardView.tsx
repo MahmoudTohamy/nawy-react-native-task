@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Button, Card, EmptyState } from '../ui';
 import { useHabitatStore } from '../../stores/habitatStore';
@@ -64,6 +64,16 @@ export default function LifeSupportDashboardView() {
 
     return { safeCount, warningCount, criticalCount };
   }, [habitats]);
+
+  const openHabitatLabel = useMemo(
+    () => (activeHabitat ? `View ${activeHabitat.title}` : 'View habitat'),
+    [activeHabitat],
+  );
+
+  const handleOpenHabitat = useCallback(() => {
+    if (!activeHabitat) return;
+    router.push({ pathname: '/property/unlock/[id]', params: { id: activeHabitat.id } });
+  }, [activeHabitat, router]);
 
   if (!activeHabitat) {
     return <EmptyState icon="planet-outline" title="No Habitats Available" />;
@@ -198,9 +208,9 @@ export default function LifeSupportDashboardView() {
 
       {/* Jump to Habitat Details */}
       <Button
-        label="Open Full Schematics & Unlock Gate"
-        icon="scan-outline"
-        onPress={() => router.push({ pathname: '/property/unlock/[id]', params: { id: activeHabitat.id } })}
+        label={openHabitatLabel}
+        icon="home-outline"
+        onPress={handleOpenHabitat}
         style={styles.openDetailBtn}
       />
     </ScrollView>

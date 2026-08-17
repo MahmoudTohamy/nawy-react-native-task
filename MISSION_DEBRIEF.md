@@ -39,7 +39,7 @@ npm test
 ### 2. What Was Fixed
 * **Defensive Domain Parser (`parseHabitat.ts`)**:
   * Normalized status strings into strict unions (`available` | `pending` | `occupied` | `maintenance`).
-  * Converted corrupt negative/NaN lease credits into `null` with formatted labels (`Credits unavailable`) and non-blocking `dataIssues` tags surfaced to the user.
+  * Converted corrupt negative/NaN lease credits into `null` with a resident-facing label (`Credits unavailable`) instead of rendering a negative price. Parser `dataIssues` stay internal for tests and diagnostics.
   * Structured life-support telemetry (O₂, Cabin Pressure, Thermal HVAC, Radiation Shielding, Power Reserve, CO₂ Scrubber status).
 * **Multi-Factor Habitability Scoring (`habitatSafety.ts`)**:
   * Developed a worst-case accumulator algorithm (`worstLevel`) evaluating 6 vital metrics to classify habitats into `SAFE`, `WARNING`, and `CRITICAL` safety bands.

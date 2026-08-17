@@ -72,12 +72,6 @@ function HabitatCard({ habitat, onPress }: Props) {
           </Text>
           <Badge label={habitat.status} tone={isAvailable ? 'safe' : 'warning'} />
         </View>
-        {habitat.dataIssues.length > 0 && (
-          <View style={styles.issueChip}>
-            <Ionicons name="warning-outline" size={12} color={status.warning.text} />
-            <Text style={styles.issueText}>Data issue detected</Text>
-          </View>
-        )}
       </View>
     </TouchableOpacity>
   );
@@ -114,18 +108,6 @@ const styles = StyleSheet.create({
   secondaryRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: spacing.sm },
   footerRow: { flexDirection: 'row', alignItems: 'center', marginTop: spacing.md },
   detail: { fontSize: 12, color: neutral.textSubtle, flex: 1 },
-  issueChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-    marginTop: spacing.md,
-    backgroundColor: status.warning.bg,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderRadius: radius.xs,
-    alignSelf: 'flex-start',
-  },
-  issueText: { fontSize: 11, color: status.warning.text },
 });
 
 export default memo(HabitatCard);

@@ -121,21 +121,6 @@ export default function HabitatDetailScreen() {
           <Text style={styles.leaseRate}>{habitat.leaseLabel}</Text>
         </View>
 
-        {/* Data Issues Alert */}
-        {habitat.dataIssues.length > 0 && (
-          <View style={styles.dataIssueBanner}>
-            <Ionicons name="alert-circle" size={18} color={status.warning.text} />
-            <View style={styles.dataIssueContent}>
-              <Text style={styles.dataIssueTitle}>Telemetry / Data Notice</Text>
-              {habitat.dataIssues.map((issue, idx) => (
-                <Text key={idx} style={styles.dataIssueText}>
-                  • {issue}
-                </Text>
-              ))}
-            </View>
-          </View>
-        )}
-
         {/* Structural Specifications */}
         <Card style={styles.sectionCard}>
           <Text style={styles.sectionHeader}>Structural Specs</Text>
@@ -302,29 +287,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: brand.primary,
     marginTop: spacing.md,
-  },
-  dataIssueBanner: {
-    flexDirection: 'row',
-    backgroundColor: status.warning.bg,
-    borderWidth: 1,
-    borderColor: status.warning.border,
-    borderRadius: radius.md,
-    padding: spacing.xl,
-    marginBottom: spacing['3xl'],
-    gap: spacing.lg,
-  },
-  dataIssueContent: {
-    flex: 1,
-  },
-  dataIssueTitle: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: status.warning.text,
-    marginBottom: 2,
-  },
-  dataIssueText: {
-    fontSize: 12,
-    color: status.warning.accent,
   },
   sectionCard: {
     marginBottom: spacing['3xl'],
