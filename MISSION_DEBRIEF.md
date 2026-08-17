@@ -16,7 +16,7 @@ npm install
 # 2. Run Expo dev server
 npx expo start
 
-# 3. Execute the full Mars-era test suite (18 tests passing)
+# 3. Execute the full Mars-era test suite (22 tests passing)
 npm test
 ```
 
@@ -48,6 +48,7 @@ npm test
   * Implemented an in-memory session authorization gate (`accessStore`) requiring explicit resident passphrase clearance before unlocking structural schematics and sensitive telemetry.
 * **Robust UI & Telemetry Cards**:
   * Created `HabitatCard` and `HabitatFilterBar` for at-a-glance habitability evaluation, O₂/pressure vitals, berth/bath criteria, and Sol listings.
+* **Listing Compare**: From an unlocked habitat detail, buyers pick a second listing and compare habitability, sale price (CR), structural specs (volume, berths, baths), O₂, and cabin pressure — using public card metrics, without a second airlock.
 
 ---
 
@@ -118,5 +119,5 @@ If allocated additional development Sols, we would prioritize:
 
 ## Reviewer Notes `OPTIONAL`
 
-* **100% Test Coverage**: Run `npm test` to execute all 18 automated tests spanning defensive parsing, habitability threshold algorithms, access control, energy calculations, alert triage, and UI components.
+* **100% Test Coverage**: Run `npm test` to execute all 22 automated tests spanning defensive parsing, habitability threshold algorithms, access control, energy calculations, alert triage, and UI components.
 * **Clean Git History**: Changes have been committed in clean, atomic commits reflecting logical milestones.

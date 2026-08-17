@@ -1,9 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import HabitatImage from '../../components/HabitatImage';
-import { Badge, Card, Chip, EmptyState } from '../../components/ui';
+import { Badge, Button, Card, Chip, EmptyState } from '../../components/ui';
 import { getHabitatById } from '../../services/habitatService';
 import { useAccessStore } from '../../stores/accessStore';
 import { useHabitatStore } from '../../stores/habitatStore';
@@ -46,6 +46,8 @@ function getScrubberDetails(scrubberStatus: Co2ScrubberStatus) {
   return { label: 'Failed', color: status.critical.text, icon: 'close-circle' as const };
 }
 
+const COMPARE_LABEL = 'Compare with another habitat';
+
 export default function HabitatDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
@@ -53,6 +55,11 @@ export default function HabitatDetailScreen() {
   const isUnlocked = useAccessStore((s) => (id ? s.unlockedIds.has(id) : false));
   const storeHabitat = useHabitatStore((s) => s.habitats.find((h) => h.id === id));
   const habitat = storeHabitat || (id ? getHabitatById(id) : undefined);
+
+  const handleCompare = useCallback(() => {
+    if (!id) return;
+    router.push({ pathname: '/property/compare-pick', params: { left: id } });
+  }, [id, router]);
 
   useEffect(() => {
     if (id && !isUnlocked) {
@@ -218,6 +225,13 @@ export default function HabitatDetailScreen() {
           </Card>
         )}
 
+        <Button
+          label={COMPARE_LABEL}
+          icon="git-compare-outline"
+          onPress={handleCompare}
+          style={styles.compareButton}
+        />
+
         {/* Settlement Status & Sol Info */}
         <Card>
           <View style={styles.footerRow}>
@@ -289,6 +303,10 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
   },
   sectionCard: {
+    marginBottom: spacing['3xl'],
+  },
+  compareButton: {
+    width: '100%',
     marginBottom: spacing['3xl'],
   },
   sectionHeader: {

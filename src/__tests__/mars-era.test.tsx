@@ -262,6 +262,93 @@ describe('Mars-era Habitat Suite — Deliverable A', () => {
     });
   });
 
+  describe('Habitat Compare Winners', () => {
+    const { getCompareWinners } = require('../utils/compareHabitats');
+
+    const safeSupport = {
+      o2_level: 21.0,
+      cabin_pressure_kpa: 86,
+      temperature_c: 21,
+      radiation_shielding_pct: 95,
+      power_reserve_hrs: 6,
+      co2_scrubber_status: 'active',
+    };
+
+    test('safer habitability wins', () => {
+      const left = parseHabitat({
+        id: 'a',
+        lease_credits: 500,
+        volume_m3: 400,
+        life_support: safeSupport,
+      });
+      const right = parseHabitat({
+        id: 'b',
+        lease_credits: 500,
+        volume_m3: 400,
+        life_support: { ...safeSupport, o2_level: 16 },
+      });
+
+      expect(getCompareWinners(left, right).habitability).toBe('left');
+    });
+
+    test('lower sale price wins when both have credits', () => {
+      const left = parseHabitat({
+        id: 'a',
+        lease_credits: 1200,
+        volume_m3: 400,
+        life_support: safeSupport,
+      });
+      const right = parseHabitat({
+        id: 'b',
+        lease_credits: 450,
+        volume_m3: 400,
+        life_support: safeSupport,
+      });
+
+      expect(getCompareWinners(left, right).price).toBe('right');
+    });
+
+    test('null credits is not treated as cheaper', () => {
+      const left = parseHabitat({
+        id: 'a',
+        lease_credits: -1,
+        volume_m3: 400,
+        life_support: safeSupport,
+      });
+      const right = parseHabitat({
+        id: 'b',
+        lease_credits: 800,
+        volume_m3: 400,
+        life_support: safeSupport,
+      });
+
+      expect(left.leaseCredits).toBeNull();
+      expect(getCompareWinners(left, right).price).toBe('tie');
+    });
+
+    test('more berths wins the structural row', () => {
+      const left = parseHabitat({
+        id: 'a',
+        lease_credits: 500,
+        bedrooms: 4,
+        bathrooms: 1,
+        volume_m3: 400,
+        life_support: safeSupport,
+      });
+      const right = parseHabitat({
+        id: 'b',
+        lease_credits: 500,
+        bedrooms: 2,
+        bathrooms: 3,
+        volume_m3: 400,
+        life_support: safeSupport,
+      });
+
+      expect(getCompareWinners(left, right).berths).toBe('left');
+      expect(getCompareWinners(left, right).baths).toBe('right');
+    });
+  });
+
   describe('Innovation Feature — Deliverable B (Habitat Control Center)', () => {
     describe('Alerts Parsing & Triage', () => {
       test('defensively parses alerts with unknown severity and categories', () => {
