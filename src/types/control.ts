@@ -1,5 +1,9 @@
 export type AlertSeverity = 'critical' | 'warning' | 'info';
 
+export type AlertSeverityFilter = AlertSeverity | 'all';
+
+export type ControlTab = 'alerts' | 'lifesupport' | 'energy';
+
 export type AlertCategory = 'life_support' | 'energy' | 'structural' | 'weather';
 
 export type AlertStatus = 'active' | 'dismissed' | 'snoozed';

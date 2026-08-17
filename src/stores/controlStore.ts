@@ -1,8 +1,8 @@
 import { create } from 'zustand';
 import { computeBatteryHoursRemaining, fetchAlerts, fetchEnergyStatus } from '../services/controlService';
-import { AlertSeverity, EnergyStatus, HabitatAlert } from '../types/control';
+import { AlertSeverityFilter, ControlTab, EnergyStatus, HabitatAlert } from '../types/control';
 
-export type ControlTab = 'alerts' | 'lifesupport' | 'energy';
+export type { ControlTab };
 
 export function countActiveAlerts(alerts: HabitatAlert[]): number {
   return alerts.reduce((count, alert) => (alert.status === 'active' ? count + 1 : count), 0);
@@ -18,13 +18,13 @@ export function countCriticalAlerts(alerts: HabitatAlert[]): number {
 type ControlState = {
   activeTab: ControlTab;
   alerts: HabitatAlert[];
-  severityFilter: AlertSeverity | 'all';
+  severityFilter: AlertSeverityFilter;
   energy: EnergyStatus | null;
   loading: boolean;
   error: string | null;
 
   setActiveTab: (tab: ControlTab) => void;
-  setSeverityFilter: (filter: AlertSeverity | 'all') => void;
+  setSeverityFilter: (filter: AlertSeverityFilter) => void;
   fetchControlData: () => Promise<void>;
   dismissAlert: (id: string) => void;
   snoozeAlert: (id: string) => void;
