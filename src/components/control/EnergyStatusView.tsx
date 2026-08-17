@@ -1,21 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
-import { Badge, Card, EmptyState } from '../ui';
+import { PHASE_CONFIG, RISK_CONFIG } from '../../constants/energy';
 import { useControlStore } from '../../stores/controlStore';
 import { energy, neutral, radius, spacing, status } from '../../theme';
-
-const PHASE_CONFIG = {
-  day:  { label: 'High Solar Irradiance (Day)',        icon: 'sunny' as const,         color: energy.solarOrange, bg: energy.solarOrangeBg },
-  dusk: { label: 'Approaching Terminator (Dusk)',      icon: 'partly-sunny' as const,   color: energy.duskRed,     bg: energy.duskRedBg },
-  night:{ label: 'Solar Eclipse / Night Sol',          icon: 'moon' as const,           color: energy.nightIndigo, bg: energy.nightIndigoBg },
-  dawn: { label: 'Dawn Illumination Rising',           icon: 'sunny-outline' as const,  color: energy.dawnAmber,   bg: energy.dawnAmberBg },
-};
-
-const RISK_CONFIG = {
-  nominal:  { label: 'Nominal — No Storm Detected',         color: status.safe.text,     bg: status.safe.bg },
-  moderate: { label: 'Moderate — Class-2 Front Expected',   color: status.warning.text,  bg: status.warning.bg },
-  severe:   { label: 'Severe Dust Blackout Warning',        color: status.critical.text, bg: status.critical.bg },
-};
+import { Badge, Card, EmptyState } from '../ui';
 
 export default function EnergyStatusView() {
   const energyData = useControlStore((s) => s.energy);
