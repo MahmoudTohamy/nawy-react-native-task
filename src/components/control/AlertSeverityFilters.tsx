@@ -1,5 +1,5 @@
-import { useCallback, useMemo } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View, ViewStyle } from 'react-native';
+import { useCallback, memo } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SEVERITY_FILTERS } from '../../constants/control';
 import { AlertSeverityCounts, AlertSeverityFilter } from '../../types/control';
 import { neutral, radius, spacing } from '../../theme';
@@ -13,7 +13,7 @@ type ChipProps = {
   onSelect: (value: AlertSeverityFilter) => void;
 };
 
-function AlertSeverityFilterChip({
+const AlertSeverityFilterChip = memo(function AlertSeverityFilterChip({
   value,
   label,
   count,
@@ -25,22 +25,21 @@ function AlertSeverityFilterChip({
     onSelect(value);
   }, [onSelect, value]);
 
-  const chipStyle = useMemo(
-    (): ViewStyle[] => [
-      styles.filterChip,
-      selected ? { backgroundColor: activeColor, borderColor: activeColor } : {},
-    ],
-    [selected, activeColor],
-  );
-
   return (
-    <TouchableOpacity style={chipStyle} onPress={handlePress} activeOpacity={0.8}>
+    <TouchableOpacity
+      style={[
+        styles.filterChip,
+        selected && { backgroundColor: activeColor, borderColor: activeColor },
+      ]}
+      onPress={handlePress}
+      activeOpacity={0.8}
+    >
       <Text style={[styles.filterChipText, selected && styles.filterChipTextActive]}>
         {label} ({count})
       </Text>
     </TouchableOpacity>
   );
-}
+});
 
 type Props = {
   selected: AlertSeverityFilter;

@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useCallback, useMemo } from 'react';
-import { StyleSheet, Text, TextStyle, TouchableOpacity, View, ViewStyle } from 'react-native';
+import { useCallback } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { CONTROL_TABS } from '../../constants/control';
 import { brand, neutral, radius, spacing } from '../../theme';
 import { ControlTab } from '../../types/control';
@@ -22,50 +22,28 @@ export default function ControlTabButton({ tab, selected, badgeCount, badgeColor
     onSelect(tab.key);
   }, [onSelect, tab.key]);
 
-  const buttonStyle = useMemo(
-    (): ViewStyle[] => [styles.tabButton, selected ? styles.tabButtonActive : {}],
-    [selected],
-  );
-
-  const labelStyle = useMemo(
-    (): TextStyle[] => [styles.tabButtonText, selected ? styles.tabButtonTextActive : {}],
-    [selected],
-  );
-
-  const iconColor = useMemo(() => (selected ? neutral.white : neutral.textMuted), [selected]);
-
-  const showBadge = useMemo(() => tab.key === 'alerts' && badgeCount > 0, [tab.key, badgeCount]);
-
-  const accessibilityLabel = useMemo(() => {
-    if (!showBadge) return tab.label;
-    return `${tab.label}, ${badgeCount} active alerts`;
-  }, [showBadge, tab.label, badgeCount]);
-
-  const badgeText = useMemo(
-    () => (badgeCount > BADGE_CAP ? `${BADGE_CAP}+` : String(badgeCount)),
-    [badgeCount],
-  );
-
-  const badgeStyle = useMemo(
-    (): ViewStyle[] => [styles.alertBadge, { backgroundColor: badgeColor }],
-    [badgeColor],
-  );
+  const showBadge = tab.key === 'alerts' && badgeCount > 0;
+  const accessibilityLabel = showBadge ? `${tab.label}, ${badgeCount} active alerts` : tab.label;
+  const badgeText = badgeCount > BADGE_CAP ? `${BADGE_CAP}+` : String(badgeCount);
 
   return (
     <TouchableOpacity
-      style={buttonStyle}
+      style={[styles.tabButton, selected && styles.tabButtonActive]}
       onPress={handlePress}
       activeOpacity={0.8}
       accessibilityRole="tab"
       accessibilityState={{ selected }}
       accessibilityLabel={accessibilityLabel}
     >
-      <Ionicons name={tab.icon} size={16} color={iconColor} />
-      <Text style={labelStyle} numberOfLines={1}>
+      <Ionicons name={tab.icon} size={16} color={selected ? neutral.white : neutral.textMuted} />
+      <Text
+        style={[styles.tabButtonText, selected && styles.tabButtonTextActive]}
+        numberOfLines={1}
+      >
         {tab.label}
       </Text>
       {showBadge ? (
-        <View style={badgeStyle}>
+        <View style={[styles.alertBadge, { backgroundColor: badgeColor }]}>
           <Text style={styles.alertBadgeText}>{badgeText}</Text>
         </View>
       ) : null}
