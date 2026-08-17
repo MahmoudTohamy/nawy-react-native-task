@@ -5,6 +5,7 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import HabitatListingsContent from '../components/HabitatListingsContent';
 import { ScreenState } from '../components/ui';
 import { countActiveAlerts, countCriticalAlerts, useControlStore } from '../stores/controlStore';
+import { useFavoritesStore } from '../stores/favoritesStore';
 import { useHabitatStore } from '../stores/habitatStore';
 import { brand, neutral, radius, shadow, spacing, status } from '../theme';
 import { SortKey } from '../types/habitat';
@@ -28,6 +29,7 @@ export default function ListingsScreen() {
   const fetchControlData = useControlStore((s) => s.fetchControlData);
   const activeAlerts = useControlStore((s) => countActiveAlerts(s.alerts));
   const criticalCount = useControlStore((s) => countCriticalAlerts(s.alerts));
+  const favCount = useFavoritesStore((s) => s.ids.size);
 
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -38,6 +40,10 @@ export default function ListingsScreen() {
 
   const handleOpenControlCenter = () => {
     router.push('/control');
+  };
+
+  const handleOpenFavorites = () => {
+    router.push('/favorites');
   };
 
   return (
@@ -69,6 +75,24 @@ export default function ListingsScreen() {
                     >
                       {activeAlerts}
                     </Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={handleOpenFavorites}
+                hitSlop={8}
+                style={styles.controlCenterBtn}
+                accessibilityLabel="Open favorites"
+              >
+                <Ionicons
+                  name={favCount > 0 ? 'heart' : 'heart-outline'}
+                  size={22}
+                  color={neutral.white}
+                />
+                {favCount > 0 && (
+                  <View style={[styles.headerBadge, styles.favBadge]}>
+                    <Text style={[styles.headerBadgeText, styles.favBadgeText]}>{favCount}</Text>
                   </View>
                 )}
               </TouchableOpacity>
@@ -156,6 +180,12 @@ const styles = StyleSheet.create({
   headerBadgeText: {
     fontSize: 9,
     fontWeight: '800',
+  },
+  favBadge: {
+    backgroundColor: neutral.white,
+  },
+  favBadgeText: {
+    color: brand.primary,
   },
   sortButton: { padding: spacing.xs },
   menu: {

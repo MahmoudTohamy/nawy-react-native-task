@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import FavoriteButton from '../../components/FavoriteButton';
 import HabitatImage from '../../components/HabitatImage';
 import { Badge, Button, Card, Chip, EmptyState } from '../../components/ui';
 import { getHabitatById } from '../../services/habitatService';
@@ -103,6 +104,7 @@ export default function HabitatDetailScreen() {
         options={{
           title: habitat.title,
           headerBackTitle: 'Habitats',
+          headerRight: () => <FavoriteButton habitatId={habitat.id} variant="header" />,
         }}
       />
 

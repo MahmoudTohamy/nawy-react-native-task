@@ -4,6 +4,7 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { brand, neutral, radius, shadow, spacing, status } from '../theme';
 import { Habitat } from '../types/habitat';
 import { HABITABILITY_COLORS } from '../utils/habitatSafety';
+import FavoriteButton from './FavoriteButton';
 import HabitatImage from './HabitatImage';
 import { Badge } from './ui';
 
@@ -32,6 +33,7 @@ function HabitatCard({ habitat, onPress }: Props) {
           tone={habitat.habitability}
           style={styles.habitabilityBadge}
         />
+        <FavoriteButton habitatId={habitat.id} style={styles.favoriteButton} />
       </View>
       <View style={styles.body}>
         <View style={styles.headerRow}>
@@ -95,6 +97,11 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: spacing.md,
     left: spacing.md,
+  },
+  favoriteButton: {
+    position: 'absolute',
+    top: spacing.md,
+    right: spacing.md,
   },
   body: { padding: spacing['3xl'] },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },

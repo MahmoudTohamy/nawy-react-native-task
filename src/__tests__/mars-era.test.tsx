@@ -1,11 +1,12 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { fireEvent, render } from '@testing-library/react-native';
 import { AppConfig } from '../constants/config';
 import { parseHabitat } from '../utils/parseHabitat';
 import { getHabitability } from '../utils/habitatSafety';
 import { filterHabitats } from '../utils/filterHabitats';
 import { sortHabitats } from '../utils/sortHabitats';
 import { useAccessStore } from '../stores/accessStore';
+import { useFavoritesStore } from '../stores/favoritesStore';
 import HabitatCard from '../components/HabitatCard';
 import { Habitat } from '../types/habitat';
 
@@ -121,6 +122,24 @@ describe('Mars-era Habitat Suite — Deliverable A', () => {
     });
   });
 
+  describe('Session Favorites', () => {
+    beforeEach(() => {
+      useFavoritesStore.setState({ ids: new Set() });
+    });
+
+    test('toggle adds and removes a habitat from the shortlist', () => {
+      expect(useFavoritesStore.getState().isFavorite('h1')).toBe(false);
+
+      useFavoritesStore.getState().toggle('h1');
+      expect(useFavoritesStore.getState().isFavorite('h1')).toBe(true);
+      expect(useFavoritesStore.getState().ids.size).toBe(1);
+
+      useFavoritesStore.getState().toggle('h1');
+      expect(useFavoritesStore.getState().isFavorite('h1')).toBe(false);
+      expect(useFavoritesStore.getState().ids.size).toBe(0);
+    });
+  });
+
   describe('Filtering & Sorting Logic', () => {
     const mockHabitats: Habitat[] = [
       parseHabitat({
@@ -207,6 +226,10 @@ describe('Mars-era Habitat Suite — Deliverable A', () => {
   });
 
   describe('Martian UI Components', () => {
+    beforeEach(() => {
+      useFavoritesStore.setState({ ids: new Set() });
+    });
+
     test('HabitatCard renders Mars metrics, telemetry, and badges', async () => {
       const habitat = parseHabitat({
         id: 'prop_001',
@@ -240,6 +263,25 @@ describe('Mars-era Habitat Suite — Deliverable A', () => {
       expect(getByText('Power: 6.2 hrs')).toBeTruthy();
       expect(getByText('Rad: 94%')).toBeTruthy();
       expect(queryByText(/EGP/)).toBeNull();
+    });
+
+    test('HabitatCard heart toggles favorites without opening the listing', async () => {
+      const habitat = parseHabitat({
+        id: 'prop_001',
+        title: 'Alpha Dome 3-Berth',
+        lease_credits: 450,
+        status: 'available',
+      });
+      const onPress = jest.fn();
+
+      const { getByLabelText } = await render(
+        <HabitatCard habitat={habitat} onPress={onPress} />
+      );
+
+      fireEvent.press(getByLabelText('Add to favorites'));
+
+      expect(onPress).not.toHaveBeenCalled();
+      expect(useFavoritesStore.getState().isFavorite('prop_001')).toBe(true);
     });
 
     test('HabitatCard shows Credits unavailable for corrupted lease credits', async () => {
