@@ -61,3 +61,14 @@ export const HABITABILITY_COLORS: Record<Habitability, { bg: string; text: strin
 export function metricToneColor(level: Habitability): string {
   return HABITABILITY_COLORS[level].text;
 }
+
+const DUST_STORM_PREFIX: Record<Habitability, string> = {
+  safe: 'Dust-storm ready',
+  warning: 'Blackout risk',
+  critical: 'Cannot survive blackout',
+};
+
+export function getDustStormLabel(lifeSupport: LifeSupport): string {
+  const prefix = DUST_STORM_PREFIX[getMetricHabitability('power', lifeSupport)];
+  return `${prefix}: ${lifeSupport.powerReserveHrs.toFixed(1)} hrs`;
+}

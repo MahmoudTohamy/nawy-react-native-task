@@ -3,7 +3,12 @@ import { memo } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { brand, neutral, radius, shadow, spacing, status } from '../theme';
 import { Habitat } from '../types/habitat';
-import { HABITABILITY_COLORS } from '../utils/habitatSafety';
+import {
+  HABITABILITY_COLORS,
+  getDustStormLabel,
+  getMetricHabitability,
+  metricToneColor,
+} from '../utils/habitatSafety';
 import FavoriteButton from './FavoriteButton';
 import HabitatImage from './HabitatImage';
 import { Badge } from './ui';
@@ -23,6 +28,8 @@ function HabitatCard({ habitat, onPress }: Props) {
   const habitabilityStyle = HABITABILITY_COLORS[habitat.habitability];
   const isAvailable = habitat.status === 'available';
   const co2 = scrubberIcon(habitat.lifeSupport.co2ScrubberStatus);
+  const dustStormLabel = getDustStormLabel(habitat.lifeSupport);
+  const dustStormColor = metricToneColor(getMetricHabitability('power', habitat.lifeSupport));
 
   return (
     <TouchableOpacity style={styles.card} onPress={() => onPress(habitat.id)} activeOpacity={0.85}>
@@ -61,8 +68,8 @@ function HabitatCard({ habitat, onPress }: Props) {
           </View>
         </View>
         <View style={styles.secondaryRow}>
-          <Text style={styles.detail}>
-            Power: {habitat.lifeSupport.powerReserveHrs.toFixed(1)} hrs
+          <Text style={[styles.detail, { color: dustStormColor }]} numberOfLines={1}>
+            {dustStormLabel}
           </Text>
           <Text style={styles.detail}>
             Rad: {habitat.lifeSupport.radiationShieldingPct}%

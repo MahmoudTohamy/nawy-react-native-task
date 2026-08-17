@@ -48,6 +48,7 @@ npm test
   * Implemented an in-memory session authorization gate (`accessStore`) requiring explicit resident passphrase clearance before unlocking structural schematics and sensitive telemetry.
 * **Robust UI & Telemetry Cards**:
   * Created `HabitatCard` and `HabitatFilterBar` for at-a-glance habitability evaluation, O₂/pressure vitals, berth/bath criteria, and Sol listings.
+  * Listing cards answer “can I survive a blackout?” with dust-storm copy from `powerReserveHrs` (`Dust-storm ready` / `Blackout risk` / `Cannot survive blackout`) instead of a raw power readout.
 * **Listing Compare**: From an unlocked habitat detail, buyers pick a second listing and compare habitability, sale price (CR), structural specs (volume, berths, baths), O₂, and cabin pressure — using public card metrics, without a second airlock.
 * **Session Favorites**: Buyers heart listings onto an in-memory shortlist (`favoritesStore`). Heart on cards and habitat detail; a Favorites screen from the registry header. Session-only — same pattern as airlock clearance.
 

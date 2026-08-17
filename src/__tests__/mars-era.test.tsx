@@ -260,7 +260,7 @@ describe('Mars-era Habitat Suite — Deliverable A', () => {
       expect(getByText('SAFE')).toBeTruthy();
       expect(getByText('O₂ 21.2%')).toBeTruthy();
       expect(getByText('98 kPa')).toBeTruthy();
-      expect(getByText('Power: 6.2 hrs')).toBeTruthy();
+      expect(getByText('Dust-storm ready: 6.2 hrs')).toBeTruthy();
       expect(getByText('Rad: 94%')).toBeTruthy();
       expect(queryByText(/EGP/)).toBeNull();
     });
