@@ -1,26 +1,18 @@
 import { useCallback, useMemo } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View, ViewStyle } from 'react-native';
-import { AlertSeverity } from '../../types/control';
-import { neutral, radius, spacing, status } from '../../theme';
+import { SEVERITY_FILTERS } from '../../constants/control';
+import { AlertSeverityFilter } from '../../types/control';
+import { neutral, radius, spacing } from '../../theme';
 
-export type SeverityFilter = AlertSeverity | 'all';
-
-const SEVERITY_FILTERS: { key: SeverityFilter; label: string; activeColor: string }[] = [
-  { key: 'all', label: 'All', activeColor: neutral.textSecondary },
-  { key: 'critical', label: 'Critical', activeColor: status.critical.text },
-  { key: 'warning', label: 'Warning', activeColor: status.warning.text },
-  { key: 'info', label: 'Info', activeColor: status.info.text },
-];
-
-type FilterCounts = Record<SeverityFilter, number>;
+type FilterCounts = Record<AlertSeverityFilter, number>;
 
 type ChipProps = {
-  value: SeverityFilter;
+  value: AlertSeverityFilter;
   label: string;
   count: number;
   selected: boolean;
   activeColor: string;
-  onSelect: (value: SeverityFilter) => void;
+  onSelect: (value: AlertSeverityFilter) => void;
 };
 
 function AlertSeverityFilterChip({
@@ -53,9 +45,9 @@ function AlertSeverityFilterChip({
 }
 
 type Props = {
-  selected: SeverityFilter;
+  selected: AlertSeverityFilter;
   counts: FilterCounts;
-  onSelect: (value: SeverityFilter) => void;
+  onSelect: (value: AlertSeverityFilter) => void;
 };
 
 export default function AlertSeverityFilters({ selected, counts, onSelect }: Props) {
