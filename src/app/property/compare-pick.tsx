@@ -3,6 +3,7 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo } from 'react';
 import { FlatList, ListRenderItem, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Badge, EmptyState } from '../../components/ui';
+import { FLATLIST_PERF } from '../../constants/listPerformance';
 import { useHabitatStore } from '../../stores/habitatStore';
 import { brand, neutral, radius, spacing } from '../../theme';
 import { Habitat } from '../../types/habitat';
@@ -85,6 +86,7 @@ export default function ComparePickScreen() {
           data={candidates}
           keyExtractor={keyExtractor}
           renderItem={renderItem}
+          {...FLATLIST_PERF}
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
         />

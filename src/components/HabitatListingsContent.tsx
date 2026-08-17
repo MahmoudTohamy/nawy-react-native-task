@@ -10,6 +10,7 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
+import { FLATLIST_PERF } from '../constants/listPerformance';
 import { useFilteredSortedHabitats } from '../hooks/useFilteredSortedHabitats';
 import { useControlStore } from '../stores/controlStore';
 import { useHabitatStore } from '../stores/habitatStore';
@@ -108,6 +109,8 @@ export default function HabitatListingsContent() {
     }
   }, [fetchHabitats, fetchControlData]);
 
+  const keyExtractor = useCallback((item: Habitat) => item.id, []);
+
   const renderItem = useCallback(
     ({ item }: { item: Habitat }) => <HabitatCard habitat={item} onPress={handleHabitatPress} />,
     [handleHabitatPress],
@@ -146,7 +149,9 @@ export default function HabitatListingsContent() {
         ) : (
           <FlatList
             data={displayedHabitats}
-            keyExtractor={(item: Habitat) => item.id}
+            keyExtractor={keyExtractor}
+            renderItem={renderItem}
+            {...FLATLIST_PERF}
             contentContainerStyle={styles.list}
             showsVerticalScrollIndicator={false}
             onScroll={handleScroll}
@@ -159,7 +164,6 @@ export default function HabitatListingsContent() {
                 colors={[brand.primary]}
               />
             }
-            renderItem={renderItem}
           />
         )}
       </Animated.View>

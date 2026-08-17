@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import { memo, useCallback, useMemo } from 'react';
 import { FlatList, ListRenderItem, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { CATEGORY_ICONS, SEVERITY_COLORS } from '../../constants/alerts';
+import { FLATLIST_PERF } from '../../constants/listPerformance';
 import { useControlStore } from '../../stores/controlStore';
 import { brand, neutral, radius, shadow, spacing, status } from '../../theme';
 import { HabitatAlert } from '../../types/control';
@@ -158,6 +159,7 @@ export default function AlertsFeedView() {
         data={filteredAlerts}
         keyExtractor={keyExtractor}
         renderItem={renderItem}
+        {...FLATLIST_PERF}
         ListEmptyComponent={listEmpty}
         contentContainerStyle={listContentStyle}
         showsVerticalScrollIndicator={false}
