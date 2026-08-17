@@ -1,34 +1,37 @@
 import { Ionicons } from '@expo/vector-icons';
+import { memo } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { brand, neutral, radius, shadow, spacing, status } from '../theme';
 import { Habitat } from '../types/habitat';
 import { HABITABILITY_COLORS } from '../utils/habitatSafety';
 import HabitatImage from './HabitatImage';
+import { Badge } from './ui';
 
 type Props = {
   habitat: Habitat;
-  onPress: () => void;
+  onPress: (id: string) => void;
 };
 
-function scrubberIcon(status: Habitat['lifeSupport']['co2ScrubberStatus']) {
-  if (status === 'active') return { name: 'checkmark-circle' as const, color: '#2E7D32' };
-  if (status === 'degraded') return { name: 'alert-circle' as const, color: '#EF6C00' };
-  return { name: 'close-circle' as const, color: '#C62828' };
+function scrubberIcon(scrubberStatus: Habitat['lifeSupport']['co2ScrubberStatus']) {
+  if (scrubberStatus === 'active') return { name: 'checkmark-circle' as const, color: status.safe.text };
+  if (scrubberStatus === 'degraded') return { name: 'alert-circle' as const, color: status.warning.text };
+  return { name: 'close-circle' as const, color: status.critical.text };
 }
 
-export default function HabitatCard({ habitat, onPress }: Props) {
+function HabitatCard({ habitat, onPress }: Props) {
   const habitabilityStyle = HABITABILITY_COLORS[habitat.habitability];
   const isAvailable = habitat.status === 'available';
   const co2 = scrubberIcon(habitat.lifeSupport.co2ScrubberStatus);
 
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.85}>
+    <TouchableOpacity style={styles.card} onPress={() => onPress(habitat.id)} activeOpacity={0.85}>
       <View style={styles.imageContainer}>
         <HabitatImage imageUrl={habitat.imageUrl} size={60} />
-        <View style={[styles.habitabilityBadge, { backgroundColor: habitabilityStyle.bg }]}>
-          <Text style={[styles.habitabilityText, { color: habitabilityStyle.text }]}>
-            {habitabilityStyle.label}
-          </Text>
-        </View>
+        <Badge
+          label={habitabilityStyle.label}
+          tone={habitat.habitability}
+          style={styles.habitabilityBadge}
+        />
       </View>
       <View style={styles.body}>
         <View style={styles.headerRow}>
@@ -43,11 +46,11 @@ export default function HabitatCard({ habitat, onPress }: Props) {
         </Text>
         <View style={styles.vitalsRow}>
           <View style={styles.vital}>
-            <Ionicons name="water-outline" size={14} color="#D84315" />
+            <Ionicons name="water-outline" size={14} color={brand.primary} />
             <Text style={styles.vitalText}>O₂ {habitat.lifeSupport.o2Level.toFixed(1)}%</Text>
           </View>
           <View style={styles.vital}>
-            <Ionicons name="speedometer-outline" size={14} color="#D84315" />
+            <Ionicons name="speedometer-outline" size={14} color={brand.primary} />
             <Text style={styles.vitalText}>{habitat.lifeSupport.cabinPressureKpa} kPa</Text>
           </View>
           <View style={styles.vital}>
@@ -67,15 +70,11 @@ export default function HabitatCard({ habitat, onPress }: Props) {
           <Text style={styles.detail}>
             {habitat.bedrooms} berths · {habitat.bathrooms} baths
           </Text>
-          <View style={[styles.statusChip, { backgroundColor: isAvailable ? '#C8E6C9' : '#FFE0B2' }]}>
-            <Text style={[styles.statusText, { color: isAvailable ? '#2E7D32' : '#EF6C00' }]}>
-              {habitat.status}
-            </Text>
-          </View>
+          <Badge label={habitat.status} tone={isAvailable ? 'safe' : 'warning'} />
         </View>
         {habitat.dataIssues.length > 0 && (
           <View style={styles.issueChip}>
-            <Ionicons name="warning-outline" size={12} color="#EF6C00" />
+            <Ionicons name="warning-outline" size={12} color={status.warning.text} />
             <Text style={styles.issueText}>Data issue detected</Text>
           </View>
         )}
@@ -86,51 +85,47 @@ export default function HabitatCard({ habitat, onPress }: Props) {
 
 const styles = StyleSheet.create({
   card: {
-    marginHorizontal: 16,
-    marginVertical: 8,
-    borderRadius: 12,
-    backgroundColor: '#FFFFFF',
+    marginHorizontal: spacing['3xl'],
+    marginVertical: spacing.md,
+    borderRadius: radius.xl,
+    backgroundColor: neutral.white,
     overflow: 'hidden',
     elevation: 2,
-    shadowColor: '#000000',
+    shadowColor: shadow.color,
     shadowOpacity: 0.1,
     shadowRadius: 4,
     shadowOffset: { width: 0, height: 2 },
   },
-  imageContainer: { height: 160, backgroundColor: '#EEEEEE' },
+  imageContainer: { height: 160, backgroundColor: neutral.placeholder },
   habitabilityBadge: {
     position: 'absolute',
-    top: 8,
-    left: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 4,
+    top: spacing.md,
+    left: spacing.md,
   },
-  habitabilityText: { fontSize: 11, fontWeight: '700' },
-  body: { padding: 16 },
+  body: { padding: spacing['3xl'] },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  title: { fontSize: 17, fontWeight: 'bold', flex: 1, marginRight: 8 },
-  sector: { fontSize: 12, color: '#757575', fontWeight: '600' },
-  lease: { fontSize: 15, color: '#D84315', fontWeight: '600', marginTop: 4 },
-  grid: { color: '#757575', fontSize: 12, marginTop: 2 },
-  vitalsRow: { flexDirection: 'row', marginTop: 10, gap: 12 },
-  vital: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  title: { fontSize: 17, fontWeight: 'bold', flex: 1, marginRight: spacing.md },
+  sector: { fontSize: 12, color: neutral.textSubtle, fontWeight: '600' },
+  lease: { fontSize: 15, color: brand.primary, fontWeight: '600', marginTop: spacing.xs },
+  grid: { color: neutral.textSubtle, fontSize: 12, marginTop: 2 },
+  vitalsRow: { flexDirection: 'row', marginTop: spacing.lg, gap: spacing.xl },
+  vital: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   vitalText: { fontSize: 12, fontWeight: '500' },
-  secondaryRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 },
-  footerRow: { flexDirection: 'row', alignItems: 'center', marginTop: 8 },
-  detail: { fontSize: 12, color: '#757575', flex: 1 },
-  statusChip: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 4 },
-  statusText: { fontSize: 11, textTransform: 'capitalize' },
+  secondaryRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: spacing.sm },
+  footerRow: { flexDirection: 'row', alignItems: 'center', marginTop: spacing.md },
+  detail: { fontSize: 12, color: neutral.textSubtle, flex: 1 },
   issueChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    marginTop: 8,
-    backgroundColor: '#FFF3E0',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
+    gap: spacing.xs,
+    marginTop: spacing.md,
+    backgroundColor: status.warning.bg,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: radius.xs,
     alignSelf: 'flex-start',
   },
-  issueText: { fontSize: 11, color: '#EF6C00' },
+  issueText: { fontSize: 11, color: status.warning.text },
 });
+
+export default memo(HabitatCard);

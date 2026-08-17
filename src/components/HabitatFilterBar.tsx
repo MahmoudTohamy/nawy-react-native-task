@@ -1,6 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Chip } from './ui';
 import { useHabitatStore } from '../stores/habitatStore';
+import { brand, neutral, radius, spacing } from '../theme';
 import { hasActiveFilters } from '../utils/filterHabitats';
 
 const CREDIT_OPTIONS = [
@@ -36,7 +38,7 @@ export default function HabitatFilterBar() {
     <View style={styles.container}>
       <View style={styles.headerRow}>
         <View style={styles.titleRow}>
-          <Ionicons name="options-outline" size={16} color="#D84315" />
+          <Ionicons name="options-outline" size={16} color={brand.primary} />
           <Text style={styles.headerTitle}>Environmental Filters</Text>
         </View>
 
@@ -46,7 +48,7 @@ export default function HabitatFilterBar() {
           style={[styles.clearButton, { opacity: isActive ? 1 : 0 }]}
           disabled={!isActive}
         >
-          <Ionicons name="close-circle-outline" size={14} color="#D84315" />
+          <Ionicons name="close-circle-outline" size={14} color={brand.primary} />
           <Text style={styles.clearText}>Reset</Text>
         </TouchableOpacity>
       </View>
@@ -64,21 +66,17 @@ export default function HabitatFilterBar() {
               const selected =
                 filters.minLeaseCredits === opt.min && filters.maxLeaseCredits === opt.max;
               return (
-                <TouchableOpacity
+                <Chip
                   key={i}
-                  style={[styles.chip, selected && styles.chipSelected]}
+                  label={opt.label}
+                  selected={selected}
                   onPress={() =>
                     setFilters({
                       minLeaseCredits: opt.min,
                       maxLeaseCredits: opt.max,
                     })
                   }
-                  activeOpacity={0.7}
-                >
-                  <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
-                    {opt.label}
-                  </Text>
-                </TouchableOpacity>
+                />
               );
             })}
           </View>
@@ -93,16 +91,12 @@ export default function HabitatFilterBar() {
             {BERTH_OPTIONS.map((opt, i) => {
               const selected = filters.minBedrooms === opt.min;
               return (
-                <TouchableOpacity
+                <Chip
                   key={i}
-                  style={[styles.chip, selected && styles.chipSelected]}
+                  label={opt.label}
+                  selected={selected}
                   onPress={() => setFilters({ minBedrooms: opt.min })}
-                  activeOpacity={0.7}
-                >
-                  <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
-                    {opt.label}
-                  </Text>
-                </TouchableOpacity>
+                />
               );
             })}
           </View>
@@ -117,16 +111,12 @@ export default function HabitatFilterBar() {
             {BATH_OPTIONS.map((opt, i) => {
               const selected = filters.minBathrooms === opt.min;
               return (
-                <TouchableOpacity
+                <Chip
                   key={i}
-                  style={[styles.chip, selected && styles.chipSelected]}
+                  label={opt.label}
+                  selected={selected}
                   onPress={() => setFilters({ minBathrooms: opt.min })}
-                  activeOpacity={0.7}
-                >
-                  <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
-                    {opt.label}
-                  </Text>
-                </TouchableOpacity>
+                />
               );
             })}
           </View>
@@ -138,87 +128,66 @@ export default function HabitatFilterBar() {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 10,
+    backgroundColor: neutral.white,
+    paddingVertical: spacing.lg,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: neutral.chipBorder,
   },
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    marginBottom: 8,
+    paddingHorizontal: spacing['3xl'],
+    marginBottom: spacing.md,
     minHeight: 26,
   },
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: spacing.sm,
   },
   headerTitle: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#424242',
+    color: neutral.textSecondary,
     letterSpacing: 0.3,
   },
   clearButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    backgroundColor: '#FBE9E7',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 12,
+    gap: spacing.xs,
+    backgroundColor: brand.primaryTint,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xxs + 1,
+    borderRadius: radius['2xl'],
   },
   clearText: {
     fontSize: 12,
-    color: '#D84315',
+    color: brand.primary,
     fontWeight: '600',
   },
   scrollContent: {
-    paddingHorizontal: 16,
+    paddingHorizontal: spacing['3xl'],
     alignItems: 'center',
-    gap: 12,
+    gap: spacing.xl,
   },
   group: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: spacing.sm,
   },
   groupLabel: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#757575',
+    color: neutral.textSubtle,
   },
   chipRow: {
     flexDirection: 'row',
-    gap: 6,
-  },
-  chip: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 14,
-    backgroundColor: '#F5F5F5',
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-  },
-  chipSelected: {
-    backgroundColor: '#D84315',
-    borderColor: '#D84315',
-  },
-  chipText: {
-    fontSize: 12,
-    color: '#616161',
-    fontWeight: '500',
-  },
-  chipTextSelected: {
-    color: '#FFFFFF',
-    fontWeight: '700',
+    gap: spacing.sm,
   },
   divider: {
     width: 1,
     height: 20,
-    backgroundColor: '#E0E0E0',
+    backgroundColor: neutral.chipBorder,
   },
 });

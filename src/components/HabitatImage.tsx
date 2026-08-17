@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import { Image, StyleSheet, View } from 'react-native';
+import { neutral } from '../theme';
 
 type Props = {
   imageUrl: string | null;
@@ -8,13 +9,13 @@ type Props = {
   style?: object;
 };
 
-export default function HabitatImage({ imageUrl, size = 60, style }: Props) {
+function HabitatImage({ imageUrl, size = 60, style }: Props) {
   const [failed, setFailed] = useState(false);
 
   if (!imageUrl || failed) {
     return (
       <View style={[styles.fallback, style]}>
-        <Ionicons name="planet-outline" size={size} color="#9E9E9E" />
+        <Ionicons name="planet-outline" size={size} color={neutral.textDisabled} />
       </View>
     );
   }
@@ -36,6 +37,8 @@ const styles = StyleSheet.create({
     height: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#EEEEEE',
+    backgroundColor: neutral.placeholder,
   },
 });
+
+export default memo(HabitatImage);
