@@ -1,15 +1,43 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useEffect, useMemo } from 'react';
+import { memo, useCallback, useEffect, useMemo } from 'react';
 import { FlatList, ListRenderItem, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Badge, EmptyState } from '../../components/ui';
-import { FLATLIST_PERF } from '../../constants/listPerformance';
+import { FLATLIST_REGISTRY } from '../../constants/listPerformance';
 import { useHabitatStore } from '../../stores/habitatStore';
 import { brand, neutral, radius, spacing } from '../../theme';
 import { Habitat } from '../../types/habitat';
 import { HABITABILITY_COLORS } from '../../utils/habitatSafety';
 
 const COMPARE_PICK_TITLE = 'Choose habitat to compare';
+
+type ComparePickRowProps = {
+  habitat: Habitat;
+  onSelect: (id: string) => void;
+};
+
+const ComparePickRow = memo(function ComparePickRow({ habitat, onSelect }: ComparePickRowProps) {
+  const handlePress = useCallback(() => {
+    onSelect(habitat.id);
+  }, [onSelect, habitat.id]);
+
+  const tone = HABITABILITY_COLORS[habitat.habitability];
+
+  return (
+    <TouchableOpacity style={styles.row} onPress={handlePress} activeOpacity={0.8}>
+      <View style={styles.rowBody}>
+        <Text style={styles.title} numberOfLines={1}>
+          {habitat.title}
+        </Text>
+        <Text style={styles.meta} numberOfLines={1}>
+          {habitat.sector} · {habitat.leaseLabel}
+        </Text>
+      </View>
+      <Badge label={tone.label} tone={habitat.habitability} />
+      <Ionicons name="chevron-forward" size={18} color={neutral.textDisabled} />
+    </TouchableOpacity>
+  );
+});
 
 export default function ComparePickScreen() {
   const { left } = useLocalSearchParams<{ left: string }>();
@@ -39,27 +67,7 @@ export default function ComparePickScreen() {
   const keyExtractor = useCallback((item: Habitat) => item.id, []);
 
   const renderItem = useCallback<ListRenderItem<Habitat>>(
-    ({ item }) => {
-      const tone = HABITABILITY_COLORS[item.habitability];
-      return (
-        <TouchableOpacity
-          style={styles.row}
-          onPress={() => handleSelect(item.id)}
-          activeOpacity={0.8}
-        >
-          <View style={styles.rowBody}>
-            <Text style={styles.title} numberOfLines={1}>
-              {item.title}
-            </Text>
-            <Text style={styles.meta} numberOfLines={1}>
-              {item.sector} · {item.leaseLabel}
-            </Text>
-          </View>
-          <Badge label={tone.label} tone={item.habitability} />
-          <Ionicons name="chevron-forward" size={18} color={neutral.textDisabled} />
-        </TouchableOpacity>
-      );
-    },
+    ({ item }) => <ComparePickRow habitat={item} onSelect={handleSelect} />,
     [handleSelect],
   );
 
@@ -86,7 +94,7 @@ export default function ComparePickScreen() {
           data={candidates}
           keyExtractor={keyExtractor}
           renderItem={renderItem}
-          {...FLATLIST_PERF}
+          {...FLATLIST_REGISTRY}
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
         />

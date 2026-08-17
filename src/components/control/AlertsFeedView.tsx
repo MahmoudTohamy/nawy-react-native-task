@@ -1,7 +1,7 @@
 import { useRouter } from 'expo-router';
-import { useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
 import { FlatList, ListRenderItem, StyleSheet, View } from 'react-native';
-import { FLATLIST_PERF } from '../../constants/listPerformance';
+import { FLATLIST_ALERTS } from '../../constants/listPerformance';
 import { useFilteredAlerts } from '../../hooks/useFilteredAlerts';
 import { useControlStore } from '../../stores/controlStore';
 import { spacing, status } from '../../theme';
@@ -50,8 +50,6 @@ export default function AlertsFeedView() {
     [handleAlertPress, handleHabitatPress],
   );
 
-  const emptySubtitle = useMemo(() => getEmptySubtitle(severityFilter), [severityFilter]);
-
   const listEmpty = useCallback(
     () => (
       <EmptyState
@@ -60,15 +58,10 @@ export default function AlertsFeedView() {
         iconColor={status.safe.text}
         titleColor={status.safe.text}
         title={EMPTY_TITLE}
-        subtitle={emptySubtitle}
+        subtitle={getEmptySubtitle(severityFilter)}
       />
     ),
-    [emptySubtitle],
-  );
-
-  const listContentStyle = useMemo(
-    () => [styles.listContent, filteredAlerts.length === 0 && styles.emptyList],
-    [filteredAlerts.length],
+    [severityFilter],
   );
 
   return (
@@ -83,9 +76,12 @@ export default function AlertsFeedView() {
         data={filteredAlerts}
         keyExtractor={keyExtractor}
         renderItem={renderItem}
-        {...FLATLIST_PERF}
+        {...FLATLIST_ALERTS}
         ListEmptyComponent={listEmpty}
-        contentContainerStyle={listContentStyle}
+        contentContainerStyle={[
+          styles.listContent,
+          filteredAlerts.length === 0 && styles.emptyList,
+        ]}
         showsVerticalScrollIndicator={false}
       />
     </View>

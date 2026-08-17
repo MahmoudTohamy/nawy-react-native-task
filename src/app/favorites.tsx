@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo } from 'react';
 import { FlatList, ListRenderItem, StyleSheet, View } from 'react-native';
 import HabitatCard from '../components/HabitatCard';
 import { EmptyState } from '../components/ui';
-import { FLATLIST_PERF } from '../constants/listPerformance';
+import { FLATLIST_REGISTRY } from '../constants/listPerformance';
 import { useFavoritesStore } from '../stores/favoritesStore';
 import { useHabitatStore } from '../stores/habitatStore';
 import { brand, neutral, spacing } from '../theme';
@@ -72,7 +72,7 @@ export default function FavoritesScreen() {
           data={saved}
           keyExtractor={keyExtractor}
           renderItem={renderItem}
-          {...FLATLIST_PERF}
+          {...FLATLIST_REGISTRY}
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
         />

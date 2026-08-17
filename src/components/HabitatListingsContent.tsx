@@ -10,7 +10,7 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
-import { FLATLIST_PERF } from '../constants/listPerformance';
+import { FLATLIST_REGISTRY } from '../constants/listPerformance';
 import { useFilteredSortedHabitats } from '../hooks/useFilteredSortedHabitats';
 import { useControlStore } from '../stores/controlStore';
 import { useHabitatStore } from '../stores/habitatStore';
@@ -54,11 +54,6 @@ export default function HabitatListingsContent() {
     outputRange: [-headerHeight, 0],
   });
 
-  const animatedPaddingTop = headerAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, headerHeight],
-  });
-
   const handleHeaderLayout = (e: { nativeEvent: { layout: { height: number } } }) => {
     const h = e.nativeEvent.layout.height;
     if (h > 0 && h !== headerHeight) {
@@ -66,26 +61,24 @@ export default function HabitatListingsContent() {
     }
   };
 
+  const animateHeader = (visible: boolean) => {
+    headerVisible.current = visible;
+    setHeaderInteractive(visible);
+    Animated.timing(headerAnim, {
+      toValue: visible ? 1 : 0,
+      duration: HEADER_ANIM_DURATION,
+      useNativeDriver: true,
+    }).start();
+  };
+
   const handleScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const currentY = e.nativeEvent.contentOffset.y;
     const diff = currentY - lastScrollY.current;
 
     if (diff > SCROLL_HIDE_THRESHOLD && headerVisible.current && currentY > SCROLL_HIDE_OFFSET) {
-      headerVisible.current = false;
-      setHeaderInteractive(false);
-      Animated.timing(headerAnim, {
-        toValue: 0,
-        duration: HEADER_ANIM_DURATION,
-        useNativeDriver: false,
-      }).start();
+      animateHeader(false);
     } else if (diff < -SCROLL_HIDE_THRESHOLD && !headerVisible.current) {
-      headerVisible.current = true;
-      setHeaderInteractive(true);
-      Animated.timing(headerAnim, {
-        toValue: 1,
-        duration: HEADER_ANIM_DURATION,
-        useNativeDriver: false,
-      }).start();
+      animateHeader(true);
     }
 
     lastScrollY.current = currentY;
@@ -133,26 +126,28 @@ export default function HabitatListingsContent() {
         <HabitatFilterBar />
       </Animated.View>
 
-      <Animated.View style={[styles.listWrapper, { paddingTop: animatedPaddingTop }]}>
+      <View style={styles.listWrapper}>
         {displayedHabitats.length === 0 ? (
-          <EmptyState
-            icon={isFiltered ? 'filter-circle-outline' : 'planet-outline'}
-            title={isFiltered ? 'No Habitats Match Filters' : 'No Habitats Found'}
-            subtitle={
-              isFiltered
-                ? 'Try relaxing your credit, berth, or bathroom criteria.'
-                : 'The settlement registry currently has no registered habitat pods.'
-            }
-            actionLabel={isFiltered ? 'Reset All Filters' : undefined}
-            onAction={isFiltered ? resetFilters : undefined}
-          />
+          <View style={[styles.emptyWrap, headerHeight > 0 && { paddingTop: headerHeight }]}>
+            <EmptyState
+              icon={isFiltered ? 'filter-circle-outline' : 'planet-outline'}
+              title={isFiltered ? 'No Habitats Match Filters' : 'No Habitats Found'}
+              subtitle={
+                isFiltered
+                  ? 'Try relaxing your credit, berth, or bathroom criteria.'
+                  : 'The settlement registry currently has no registered habitat pods.'
+              }
+              actionLabel={isFiltered ? 'Reset All Filters' : undefined}
+              onAction={isFiltered ? resetFilters : undefined}
+            />
+          </View>
         ) : (
           <FlatList
             data={displayedHabitats}
             keyExtractor={keyExtractor}
             renderItem={renderItem}
-            {...FLATLIST_PERF}
-            contentContainerStyle={styles.list}
+            {...FLATLIST_REGISTRY}
+            contentContainerStyle={[styles.list, { paddingTop: headerHeight + spacing.md }]}
             showsVerticalScrollIndicator={false}
             onScroll={handleScroll}
             scrollEventThrottle={16}
@@ -166,7 +161,7 @@ export default function HabitatListingsContent() {
             }
           />
         )}
-      </Animated.View>
+      </View>
     </View>
   );
 }
@@ -184,5 +179,8 @@ const styles = StyleSheet.create({
   listWrapper: {
     flex: 1,
   },
-  list: { paddingTop: spacing.md, paddingBottom: spacing['6xl'] },
+  emptyWrap: {
+    flex: 1,
+  },
+  list: { paddingBottom: spacing['6xl'] },
 });
