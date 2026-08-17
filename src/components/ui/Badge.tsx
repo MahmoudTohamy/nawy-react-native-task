@@ -1,15 +1,8 @@
 import { StyleSheet, Text, View, ViewStyle } from 'react-native';
-import { brand, neutral, radius, spacing, status } from '../../theme';
+import { BADGE_TONE_STYLES, BadgeTone } from '../../constants/badge';
+import { radius, spacing } from '../../theme';
 
-export type BadgeTone = 'safe' | 'warning' | 'critical' | 'info' | 'neutral';
-
-const TONE_STYLES: Record<BadgeTone, { bg: string; text: string }> = {
-  safe: { bg: status.safe.chip, text: status.safe.text },
-  warning: { bg: status.warning.chip, text: status.warning.text },
-  critical: { bg: status.critical.chip, text: status.critical.text },
-  info: { bg: status.info.chip, text: status.info.text },
-  neutral: { bg: neutral.surface, text: brand.dark },
-};
+export type { BadgeTone };
 
 type Props = {
   label: string;
@@ -18,7 +11,7 @@ type Props = {
 };
 
 export default function Badge({ label, tone = 'neutral', style }: Props) {
-  const colors = TONE_STYLES[tone];
+  const colors = BADGE_TONE_STYLES[tone];
 
   return (
     <View style={[styles.badge, { backgroundColor: colors.bg }, style]}>
