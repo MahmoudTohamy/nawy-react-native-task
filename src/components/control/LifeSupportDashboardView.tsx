@@ -2,15 +2,17 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Button, Card, EmptyState } from '../ui';
 import { useHabitatStore } from '../../stores/habitatStore';
-import { Habitability, LifeSupport } from '../../types/habitat';
-import { HABITABILITY_COLORS } from '../../utils/habitatSafety';
+import { neutral, radius, spacing, status } from '../../theme';
+import { Habitability } from '../../types/habitat';
+import { HABITABILITY_COLORS, getMetricHabitability } from '../../utils/habitatSafety';
 
 function VitalMetricGauge({
   label,
   value,
   safeRange,
-  status,
+  status: gaugeStatus,
   icon,
 }: {
   label: string;
@@ -19,7 +21,7 @@ function VitalMetricGauge({
   status: Habitability;
   icon: keyof typeof Ionicons.glyphMap;
 }) {
-  const statusTheme = HABITABILITY_COLORS[status];
+  const statusTheme = HABITABILITY_COLORS[gaugeStatus];
 
   return (
     <View style={[styles.gaugeCard, { borderColor: statusTheme.bg }]}>
@@ -40,38 +42,6 @@ function VitalMetricGauge({
   );
 }
 
-function computeMetricStatus(
-  metric: 'o2' | 'pressure' | 'temp' | 'rad' | 'power' | 'scrubber',
-  lifeSupport: LifeSupport
-): Habitability {
-  switch (metric) {
-    case 'o2':
-      if (lifeSupport.o2Level >= 19.5 && lifeSupport.o2Level <= 23.5) return 'safe';
-      if (lifeSupport.o2Level >= 18 && lifeSupport.o2Level <= 25) return 'warning';
-      return 'critical';
-    case 'pressure':
-      if (lifeSupport.cabinPressureKpa >= 70 && lifeSupport.cabinPressureKpa <= 102) return 'safe';
-      if (lifeSupport.cabinPressureKpa >= 65 && lifeSupport.cabinPressureKpa <= 105) return 'warning';
-      return 'critical';
-    case 'temp':
-      if (lifeSupport.temperatureC >= 18 && lifeSupport.temperatureC <= 24) return 'safe';
-      if (lifeSupport.temperatureC >= 15 && lifeSupport.temperatureC <= 27) return 'warning';
-      return 'critical';
-    case 'rad':
-      if (lifeSupport.radiationShieldingPct >= 90) return 'safe';
-      if (lifeSupport.radiationShieldingPct >= 85) return 'warning';
-      return 'critical';
-    case 'power':
-      if (lifeSupport.powerReserveHrs >= 4) return 'safe';
-      if (lifeSupport.powerReserveHrs >= 2) return 'warning';
-      return 'critical';
-    case 'scrubber':
-      if (lifeSupport.co2ScrubberStatus === 'active') return 'safe';
-      if (lifeSupport.co2ScrubberStatus === 'degraded') return 'warning';
-      return 'critical';
-  }
-}
-
 export default function LifeSupportDashboardView() {
   const router = useRouter();
   const habitats = useHabitatStore((s) => s.habitats);
@@ -82,20 +52,21 @@ export default function LifeSupportDashboardView() {
   }, [habitats, selectedId]);
 
   const settlementSummary = useMemo(() => {
-    const total = habitats.length || 1;
-    const safeCount = habitats.filter((h) => h.habitability === 'safe').length;
-    const warningCount = habitats.filter((h) => h.habitability === 'warning').length;
-    const criticalCount = habitats.filter((h) => h.habitability === 'critical').length;
-    return { total, safeCount, warningCount, criticalCount };
+    let safeCount = 0;
+    let warningCount = 0;
+    let criticalCount = 0;
+
+    for (const habitat of habitats) {
+      if (habitat.habitability === 'safe') safeCount += 1;
+      else if (habitat.habitability === 'warning') warningCount += 1;
+      else criticalCount += 1;
+    }
+
+    return { safeCount, warningCount, criticalCount };
   }, [habitats]);
 
   if (!activeHabitat) {
-    return (
-      <View style={styles.emptyContainer}>
-        <Ionicons name="planet-outline" size={48} color="#9E9E9E" />
-        <Text style={styles.emptyTitle}>No Habitats Available</Text>
-      </View>
-    );
+    return <EmptyState icon="planet-outline" title="No Habitats Available" />;
   }
 
   const { lifeSupport } = activeHabitat;
@@ -109,25 +80,25 @@ export default function LifeSupportDashboardView() {
       showsVerticalScrollIndicator={false}
     >
       {/* Settlement Aggregate Overview */}
-      <View style={styles.settlementCard}>
+      <Card style={styles.settlementCard}>
         <Text style={styles.settlementTitle}>Colony Habitat Fleet Status</Text>
         <View style={styles.settlementRow}>
           <View style={styles.fleetStat}>
-            <Text style={[styles.fleetNum, { color: '#2E7D32' }]}>{settlementSummary.safeCount}</Text>
+            <Text style={[styles.fleetNum, { color: status.safe.text }]}>{settlementSummary.safeCount}</Text>
             <Text style={styles.fleetLabel}>Safe Pods</Text>
           </View>
           <View style={styles.fleetDivider} />
           <View style={styles.fleetStat}>
-            <Text style={[styles.fleetNum, { color: '#EF6C00' }]}>{settlementSummary.warningCount}</Text>
+            <Text style={[styles.fleetNum, { color: status.warning.text }]}>{settlementSummary.warningCount}</Text>
             <Text style={styles.fleetLabel}>Degraded</Text>
           </View>
           <View style={styles.fleetDivider} />
           <View style={styles.fleetStat}>
-            <Text style={[styles.fleetNum, { color: '#C62828' }]}>{settlementSummary.criticalCount}</Text>
+            <Text style={[styles.fleetNum, { color: status.critical.text }]}>{settlementSummary.criticalCount}</Text>
             <Text style={styles.fleetLabel}>Critical</Text>
           </View>
         </View>
-      </View>
+      </Card>
 
       {/* Habitat Selector Carousel */}
       <Text style={styles.sectionHeader}>Inspect Pod Telemetry</Text>
@@ -185,146 +156,132 @@ export default function LifeSupportDashboardView() {
           label="Atmospheric O₂"
           value={`${lifeSupport.o2Level.toFixed(1)}%`}
           safeRange="Safe: 19.5% – 23.5%"
-          status={computeMetricStatus('o2', lifeSupport)}
+          status={getMetricHabitability('o2', lifeSupport)}
           icon="water-outline"
         />
-
         <VitalMetricGauge
           label="Cabin Pressure"
           value={`${lifeSupport.cabinPressureKpa} kPa`}
           safeRange="Safe: 70 – 102 kPa"
-          status={computeMetricStatus('pressure', lifeSupport)}
+          status={getMetricHabitability('pressure', lifeSupport)}
           icon="speedometer-outline"
         />
-
         <VitalMetricGauge
           label="Thermal HVAC"
           value={`${lifeSupport.temperatureC}°C`}
           safeRange="Safe: 18°C – 24°C"
-          status={computeMetricStatus('temp', lifeSupport)}
+          status={getMetricHabitability('temp', lifeSupport)}
           icon="thermometer-outline"
         />
-
         <VitalMetricGauge
           label="CO₂ Scrubber"
           value={lifeSupport.co2ScrubberStatus.toUpperCase()}
           safeRange="Req: ACTIVE"
-          status={computeMetricStatus('scrubber', lifeSupport)}
+          status={getMetricHabitability('scrubber', lifeSupport)}
           icon="repeat-outline"
         />
-
         <VitalMetricGauge
           label="Radiation Shield"
           value={`${lifeSupport.radiationShieldingPct}%`}
           safeRange="Safe: ≥ 90%"
-          status={computeMetricStatus('rad', lifeSupport)}
+          status={getMetricHabitability('rad', lifeSupport)}
           icon="shield-outline"
         />
-
         <VitalMetricGauge
           label="Battery Reserve"
           value={`${lifeSupport.powerReserveHrs.toFixed(1)} hrs`}
           safeRange="Safe: ≥ 4.0 hrs"
-          status={computeMetricStatus('power', lifeSupport)}
+          status={getMetricHabitability('power', lifeSupport)}
           icon="battery-charging-outline"
         />
       </View>
 
       {/* Jump to Habitat Details */}
-      <TouchableOpacity
-        style={styles.openDetailBtn}
+      <Button
+        label="Open Full Schematics & Unlock Gate"
+        icon="scan-outline"
         onPress={() => router.push({ pathname: '/property/unlock/[id]', params: { id: activeHabitat.id } })}
-        activeOpacity={0.85}
-      >
-        <Ionicons name="scan-outline" size={18} color="#FFFFFF" />
-        <Text style={styles.openDetailText}>Open Full Schematics & Unlock Gate</Text>
-      </TouchableOpacity>
+        style={styles.openDetailBtn}
+      />
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: { padding: 16, paddingBottom: 40 },
-  emptyContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32 },
-  emptyTitle: { fontSize: 16, color: '#757575', marginTop: 12 },
+  content: { padding: spacing['3xl'], paddingBottom: spacing['7xl'] },
   settlementCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#EEEEEE',
+    marginBottom: spacing['3xl'],
   },
-  settlementTitle: { fontSize: 12, fontWeight: '700', color: '#757575', letterSpacing: 0.5, marginBottom: 12 },
+  settlementTitle: { fontSize: 12, fontWeight: '700', color: neutral.textSubtle, letterSpacing: 0.5, marginBottom: spacing.xl },
   settlementRow: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center' },
   fleetStat: { alignItems: 'center', flex: 1 },
   fleetNum: { fontSize: 22, fontWeight: '800' },
-  fleetLabel: { fontSize: 11, color: '#757575', marginTop: 2, fontWeight: '500' },
-  fleetDivider: { width: 1, height: 28, backgroundColor: '#E0E0E0' },
-  sectionHeader: { fontSize: 13, fontWeight: '700', color: '#424242', marginBottom: 10, letterSpacing: 0.3 },
-  selectorRow: { gap: 8, paddingBottom: 16 },
+  fleetLabel: { fontSize: 11, color: neutral.textSubtle, marginTop: 2, fontWeight: '500' },
+  fleetDivider: { width: 1, height: 28, backgroundColor: neutral.chipBorder },
+  sectionHeader: { fontSize: 13, fontWeight: '700', color: neutral.textSecondary, marginBottom: spacing.lg, letterSpacing: 0.3 },
+  selectorRow: { gap: spacing.md, paddingBottom: spacing['3xl'] },
   habitatPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: '#FFFFFF',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.md,
+    borderRadius: radius['4xl'],
+    backgroundColor: neutral.white,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: neutral.chipBorder,
   },
   habitatPillSelected: {
-    backgroundColor: '#212121',
-    borderColor: '#212121',
+    backgroundColor: neutral.textPrimary,
+    borderColor: neutral.textPrimary,
   },
-  statusDot: { width: 8, height: 8, borderRadius: 4 },
-  habitatPillText: { fontSize: 12, fontWeight: '600', color: '#616161' },
-  habitatPillTextSelected: { color: '#FFFFFF', fontWeight: '700' },
+  statusDot: { width: 8, height: 8, borderRadius: radius.full },
+  habitatPillText: { fontSize: 12, fontWeight: '600', color: neutral.textMuted },
+  habitatPillTextSelected: { color: neutral.white, fontWeight: '700' },
   verdictCard: {
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
+    borderRadius: radius.xl,
+    padding: spacing['3xl'],
+    marginBottom: spacing['3xl'],
   },
-  verdictIconRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  verdictIconRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xl },
   verdictTextGroup: { flex: 1 },
   verdictTitle: { fontSize: 13, fontWeight: '800', letterSpacing: 0.4 },
-  verdictSubtitle: { fontSize: 12, color: '#424242', marginTop: 3, fontWeight: '500' },
+  verdictSubtitle: { fontSize: 12, color: neutral.textSecondary, marginTop: spacing.xxs + 1, fontWeight: '500' },
   gaugesGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 10,
-    marginBottom: 16,
+    gap: spacing.lg,
+    marginBottom: spacing['3xl'],
   },
   gaugeCard: {
     width: '48%',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 10,
-    padding: 12,
+    backgroundColor: neutral.white,
+    borderRadius: radius.lg,
+    padding: spacing.xl,
     borderWidth: 1.5,
   },
   gaugeHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: spacing.md,
   },
   gaugeLabelGroup: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: spacing.xs,
     flex: 1,
   },
   gaugeLabel: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#424242',
+    color: neutral.textSecondary,
   },
   gaugeStatusBadge: {
-    paddingHorizontal: 6,
+    paddingHorizontal: spacing.sm,
     paddingVertical: 2,
-    borderRadius: 4,
+    borderRadius: radius.xs,
   },
   gaugeStatusText: {
     fontSize: 9,
@@ -337,20 +294,10 @@ const styles = StyleSheet.create({
   },
   gaugeRange: {
     fontSize: 10,
-    color: '#757575',
+    color: neutral.textSubtle,
   },
   openDetailBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: '#D84315',
-    paddingVertical: 14,
-    borderRadius: 10,
-  },
-  openDetailText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '700',
+    paddingVertical: spacing['2xl'],
+    borderRadius: radius.lg,
   },
 });

@@ -17,6 +17,27 @@ const VALID_CATEGORIES: AlertCategory[] = ['life_support', 'energy', 'structural
 const VALID_STATUSES: AlertStatus[] = ['active', 'dismissed', 'snoozed'];
 const VALID_PHASES: DayNightPhase[] = ['day', 'dusk', 'night', 'dawn'];
 const VALID_DUST_RISKS: DustStormRisk[] = ['nominal', 'moderate', 'severe'];
+const POWER_SAVE_FACTOR = 0.65;
+
+export function computeBatteryHoursRemaining({
+  batteryPct,
+  batteryCapacityKwh,
+  baseConsumptionKw,
+  solarGenerationKw,
+  powerSaveMode,
+}: {
+  batteryPct: number;
+  batteryCapacityKwh: number;
+  baseConsumptionKw: number;
+  solarGenerationKw: number;
+  powerSaveMode: boolean;
+}): number {
+  const effectiveConsumption = powerSaveMode ? baseConsumptionKw * POWER_SAVE_FACTOR : baseConsumptionKw;
+  const netDraw = Math.max(0.1, effectiveConsumption - solarGenerationKw);
+  const availableKwh = (batteryPct / 100) * batteryCapacityKwh;
+  const hours = Number((availableKwh / netDraw).toFixed(1));
+  return Number.isFinite(hours) ? Math.max(0, hours) : 12;
+}
 
 export function parseAlert(json: RawAlert): HabitatAlert {
   const severityRaw = typeof json.severity === 'string' ? json.severity.toLowerCase() : 'info';
@@ -70,18 +91,19 @@ export function parseEnergyStatus(json: RawEnergyStatus): EnergyStatus {
   const batteryPct = typeof json.battery_pct === 'number' ? json.battery_pct : 75;
   const batteryCapacityKwh = typeof json.battery_capacity_kwh === 'number' ? json.battery_capacity_kwh : 300;
 
-  const effectiveConsumption = powerSaveMode ? baseConsumptionKw * 0.65 : baseConsumptionKw;
-  const netDraw = Math.max(0.1, effectiveConsumption - solarGenerationKw);
-  const availableKwh = (batteryPct / 100) * batteryCapacityKwh;
-  const batteryHoursRemaining = Number((availableKwh / netDraw).toFixed(1));
-
   return {
     solarGenerationKw,
     baseConsumptionKw,
     powerSaveMode,
     batteryPct,
     batteryCapacityKwh,
-    batteryHoursRemaining: Number.isFinite(batteryHoursRemaining) ? Math.max(0, batteryHoursRemaining) : 12,
+    batteryHoursRemaining: computeBatteryHoursRemaining({
+      batteryPct,
+      batteryCapacityKwh,
+      baseConsumptionKw,
+      solarGenerationKw,
+      powerSaveMode,
+    }),
     solTime: typeof json.sol_time === 'string' ? json.sol_time : '12:00 MST',
     dayNightPhase,
     dustStormRisk,

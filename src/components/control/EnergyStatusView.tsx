@@ -1,39 +1,36 @@
 import { Ionicons } from '@expo/vector-icons';
-import { ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { Badge, Card, EmptyState } from '../ui';
 import { useControlStore } from '../../stores/controlStore';
+import { energy, neutral, radius, spacing, status } from '../../theme';
 
 const PHASE_CONFIG = {
-  day: { label: 'High Solar Irradiance (Day)', icon: 'sunny' as const, color: '#F57C00', bg: '#FFF8E1' },
-  dusk: { label: 'Approaching Terminator (Dusk)', icon: 'partly-sunny' as const, color: '#E64A19', bg: '#FBE9E7' },
-  night: { label: 'Solar Eclipse / Night Sol', icon: 'moon' as const, color: '#5C6BC0', bg: '#EDE7F6' },
-  dawn: { label: 'Dawn Illumination Rising', icon: 'sunny-outline' as const, color: '#FFA000', bg: '#FFF3E0' },
+  day:  { label: 'High Solar Irradiance (Day)',        icon: 'sunny' as const,         color: energy.solarOrange, bg: energy.solarOrangeBg },
+  dusk: { label: 'Approaching Terminator (Dusk)',      icon: 'partly-sunny' as const,   color: energy.duskRed,     bg: energy.duskRedBg },
+  night:{ label: 'Solar Eclipse / Night Sol',          icon: 'moon' as const,           color: energy.nightIndigo, bg: energy.nightIndigoBg },
+  dawn: { label: 'Dawn Illumination Rising',           icon: 'sunny-outline' as const,  color: energy.dawnAmber,   bg: energy.dawnAmberBg },
 };
 
 const RISK_CONFIG = {
-  nominal: { label: 'Nominal — No Storm Detected', color: '#2E7D32', bg: '#E8F5E9' },
-  moderate: { label: 'Moderate — Class-2 Front Expected', color: '#EF6C00', bg: '#FFF3E0' },
-  severe: { label: 'Severe Dust Blackout Warning', color: '#C62828', bg: '#FFEBEE' },
+  nominal:  { label: 'Nominal — No Storm Detected',         color: status.safe.text,     bg: status.safe.bg },
+  moderate: { label: 'Moderate — Class-2 Front Expected',   color: status.warning.text,  bg: status.warning.bg },
+  severe:   { label: 'Severe Dust Blackout Warning',        color: status.critical.text, bg: status.critical.bg },
 };
 
 export default function EnergyStatusView() {
-  const energy = useControlStore((s) => s.energy);
+  const energyData = useControlStore((s) => s.energy);
   const togglePowerSaveMode = useControlStore((s) => s.togglePowerSaveMode);
 
-  if (!energy) {
-    return (
-      <View style={styles.emptyContainer}>
-        <Ionicons name="flash-outline" size={48} color="#9E9E9E" />
-        <Text style={styles.emptyTitle}>Telemetry Link Offline</Text>
-      </View>
-    );
+  if (!energyData) {
+    return <EmptyState icon="flash-outline" title="Telemetry Link Offline" />;
   }
 
-  const phase = PHASE_CONFIG[energy.dayNightPhase];
-  const risk = RISK_CONFIG[energy.dustStormRisk];
-  const effectiveConsumption = energy.powerSaveMode
-    ? (energy.baseConsumptionKw * 0.65).toFixed(1)
-    : energy.baseConsumptionKw.toFixed(1);
-  const netDelta = (energy.solarGenerationKw - Number(effectiveConsumption)).toFixed(1);
+  const phase = PHASE_CONFIG[energyData.dayNightPhase];
+  const risk = RISK_CONFIG[energyData.dustStormRisk];
+  const effectiveConsumption = energyData.powerSaveMode
+    ? (energyData.baseConsumptionKw * 0.65).toFixed(1)
+    : energyData.baseConsumptionKw.toFixed(1);
+  const netDelta = (energyData.solarGenerationKw - Number(effectiveConsumption)).toFixed(1);
   const isSurplus = Number(netDelta) >= 0;
 
   return (
@@ -49,7 +46,7 @@ export default function EnergyStatusView() {
         </View>
         <View style={styles.phaseTextGroup}>
           <Text style={[styles.phaseTitle, { color: phase.color }]}>{phase.label}</Text>
-          <Text style={styles.phaseSubtitle}>Martian Local Time: {energy.solTime}</Text>
+          <Text style={styles.phaseSubtitle}>Martian Local Time: {energyData.solTime}</Text>
         </View>
       </View>
 
@@ -60,62 +57,62 @@ export default function EnergyStatusView() {
           <Text style={[styles.dustTitle, { color: risk.color }]}>Dust Storm Advisory</Text>
         </View>
         <Text style={styles.dustDescription}>
-          {energy.dustStormRisk === 'nominal'
+          {energyData.dustStormRisk === 'nominal'
             ? 'Atmospheric optical depth (tau) is nominal at 0.45. Full solar generation operational.'
-            : `Atmospheric opacity rising. Regional front countdown: ${energy.dustStormCountdownSols ?? 2} Sols. Prepare habitat battery buffer.`}
+            : `Atmospheric opacity rising. Regional front countdown: ${energyData.dustStormCountdownSols ?? 2} Sols. Prepare habitat battery buffer.`}
         </Text>
       </View>
 
-      {/* Power Balance Dashboard (Solar Generation vs. Consumption) */}
-      <View style={styles.balanceCard}>
+      {/* Power Balance Dashboard */}
+      <Card style={styles.sectionCard}>
         <Text style={styles.sectionHeader}>Instantaneous Power Balance</Text>
         <View style={styles.balanceGrid}>
           <View style={styles.balanceTile}>
             <View style={styles.tileHeader}>
-              <Ionicons name="sunny-outline" size={18} color="#F57C00" />
+              <Ionicons name="sunny-outline" size={18} color={energy.solarOrange} />
               <Text style={styles.tileLabel}>Solar Inflow</Text>
             </View>
-            <Text style={[styles.tileValue, { color: '#F57C00' }]}>
-              {energy.solarGenerationKw.toFixed(1)} kW
+            <Text style={[styles.tileValue, { color: energy.solarOrange }]}>
+              {energyData.solarGenerationKw.toFixed(1)} kW
             </Text>
             <Text style={styles.tileSub}>Photovoltaic Array</Text>
           </View>
 
           <View style={styles.balanceTile}>
             <View style={styles.tileHeader}>
-              <Ionicons name="hardware-chip-outline" size={18} color="#D84315" />
+              <Ionicons name="hardware-chip-outline" size={18} color={neutral.textPrimary} />
               <Text style={styles.tileLabel}>Habitat Draw</Text>
             </View>
-            <Text style={[styles.tileValue, { color: '#D84315' }]}>{effectiveConsumption} kW</Text>
+            <Text style={[styles.tileValue, { color: neutral.textPrimary }]}>{effectiveConsumption} kW</Text>
             <Text style={styles.tileSub}>
-              {energy.powerSaveMode ? 'Power-Save (65%)' : 'Nominal Load'}
+              {energyData.powerSaveMode ? 'Power-Save (65%)' : 'Nominal Load'}
             </Text>
           </View>
         </View>
 
-        <View style={[styles.netBadge, { backgroundColor: isSurplus ? '#E8F5E9' : '#FFEBEE' }]}>
+        <View style={[styles.netBadge, { backgroundColor: isSurplus ? status.safe.bg : status.critical.bg }]}>
           <Ionicons
             name={isSurplus ? 'trending-up' : 'trending-down'}
             size={18}
-            color={isSurplus ? '#2E7D32' : '#C62828'}
+            color={isSurplus ? status.safe.text : status.critical.text}
           />
-          <Text style={[styles.netText, { color: isSurplus ? '#2E7D32' : '#C62828' }]}>
+          <Text style={[styles.netText, { color: isSurplus ? status.safe.text : status.critical.text }]}>
             Net Grid Balance: {isSurplus ? `+${netDelta} kW (Charging)` : `${netDelta} kW (Discharging)`}
           </Text>
         </View>
-      </View>
+      </Card>
 
       {/* Battery Reserve & Hours Remaining */}
-      <View style={styles.batteryCard}>
+      <Card style={styles.sectionCard}>
         <View style={styles.batteryHeader}>
           <View style={styles.batteryTitleGroup}>
-            <Ionicons name="battery-charging" size={24} color="#2E7D32" />
+            <Ionicons name="battery-charging" size={24} color={status.safe.text} />
             <View>
               <Text style={styles.batteryTitle}>Station Battery Storage</Text>
-              <Text style={styles.batteryCap}>{energy.batteryCapacityKwh} kWh Li-Titanate Buffer</Text>
+              <Text style={styles.batteryCap}>{energyData.batteryCapacityKwh} kWh Li-Titanate Buffer</Text>
             </View>
           </View>
-          <Text style={styles.batteryPercent}>{energy.batteryPct}%</Text>
+          <Text style={styles.batteryPercent}>{energyData.batteryPct}%</Text>
         </View>
 
         {/* Visual Progress Bar */}
@@ -124,13 +121,13 @@ export default function EnergyStatusView() {
             style={[
               styles.progressBarFill,
               {
-                width: `${energy.batteryPct}%`,
+                width: `${energyData.batteryPct}%`,
                 backgroundColor:
-                  energy.batteryPct >= 50
-                    ? '#2E7D32'
-                    : energy.batteryPct >= 25
-                    ? '#EF6C00'
-                    : '#C62828',
+                  energyData.batteryPct >= 50
+                    ? status.safe.text
+                    : energyData.batteryPct >= 25
+                    ? status.warning.text
+                    : status.critical.text,
               },
             ]}
           />
@@ -138,34 +135,21 @@ export default function EnergyStatusView() {
 
         <View style={styles.batteryEstimateRow}>
           <View style={styles.estimateItem}>
-            <Ionicons name="timer-outline" size={16} color="#424242" />
+            <Ionicons name="timer-outline" size={16} color={neutral.textSecondary} />
             <Text style={styles.estimateText}>
               Estimated Hours Remaining:{' '}
-              <Text style={styles.estimateHighlight}>{energy.batteryHoursRemaining} hrs</Text>
+              <Text style={styles.estimateHighlight}>{energyData.batteryHoursRemaining} hrs</Text>
             </Text>
           </View>
-          <View
-            style={[
-              styles.statusPill,
-              {
-                backgroundColor: energy.batteryHoursRemaining >= 4 ? '#C8E6C9' : '#FFCDD2',
-              },
-            ]}
-          >
-            <Text
-              style={[
-                styles.statusPillText,
-                { color: energy.batteryHoursRemaining >= 4 ? '#2E7D32' : '#C62828' },
-              ]}
-            >
-              {energy.batteryHoursRemaining >= 4 ? 'SAFE (≥4H)' : 'CRITICAL (<4H)'}
-            </Text>
-          </View>
+          <Badge
+            label={energyData.batteryHoursRemaining >= 4 ? 'SAFE (≥4H)' : 'CRITICAL (<4H)'}
+            tone={energyData.batteryHoursRemaining >= 4 ? 'safe' : 'critical'}
+          />
         </View>
-      </View>
+      </Card>
 
       {/* Emergency Power-Saving Toggle */}
-      <View style={styles.toggleCard}>
+      <Card style={styles.toggleCard}>
         <View style={styles.toggleTextGroup}>
           <Text style={styles.toggleTitle}>Dust Storm Power-Saving Mode</Text>
           <Text style={styles.toggleDesc}>
@@ -174,128 +158,106 @@ export default function EnergyStatusView() {
           </Text>
         </View>
         <Switch
-          value={energy.powerSaveMode}
+          value={energyData.powerSaveMode}
           onValueChange={togglePowerSaveMode}
-          trackColor={{ false: '#E0E0E0', true: '#D84315' }}
-          thumbColor={energy.powerSaveMode ? '#FFFFFF' : '#FFFFFF'}
+          trackColor={{ false: neutral.chipBorder, true: neutral.textPrimary }}
+          thumbColor={neutral.white}
         />
-      </View>
+      </Card>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: { padding: 16, paddingBottom: 40 },
-  emptyContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32 },
-  emptyTitle: { fontSize: 16, color: '#757575', marginTop: 12 },
+  content: { padding: spacing['3xl'], paddingBottom: spacing['7xl'] },
   phaseBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 14,
-    borderRadius: 12,
-    marginBottom: 12,
-    gap: 12,
+    padding: spacing['2xl'],
+    borderRadius: radius.xl,
+    marginBottom: spacing.xl,
+    gap: spacing.xl,
   },
   phaseIconCircle: {
     width: 40,
     height: 40,
-    borderRadius: 20,
-    backgroundColor: '#FFFFFF',
+    borderRadius: radius.full,
+    backgroundColor: neutral.white,
     alignItems: 'center',
     justifyContent: 'center',
   },
   phaseTextGroup: { flex: 1 },
   phaseTitle: { fontSize: 13, fontWeight: '800', letterSpacing: 0.3 },
-  phaseSubtitle: { fontSize: 12, color: '#616161', marginTop: 2 },
+  phaseSubtitle: { fontSize: 12, color: neutral.textMuted, marginTop: 2 },
   dustStormCard: {
-    borderRadius: 12,
-    padding: 14,
+    borderRadius: radius.xl,
+    padding: spacing['2xl'],
     borderWidth: 1,
-    marginBottom: 16,
+    marginBottom: spacing['3xl'],
   },
-  dustHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 },
+  dustHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.xs },
   dustTitle: { fontSize: 13, fontWeight: '800' },
-  dustDescription: { fontSize: 12, color: '#424242', lineHeight: 17 },
-  balanceCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#EEEEEE',
+  dustDescription: { fontSize: 12, color: neutral.textSecondary, lineHeight: 17 },
+  sectionCard: {
+    marginBottom: spacing['3xl'],
   },
-  sectionHeader: { fontSize: 13, fontWeight: '700', color: '#424242', marginBottom: 12 },
-  balanceGrid: { flexDirection: 'row', gap: 10, marginBottom: 12 },
+  sectionHeader: { fontSize: 13, fontWeight: '700', color: neutral.textSecondary, marginBottom: spacing.xl },
+  balanceGrid: { flexDirection: 'row', gap: spacing.lg, marginBottom: spacing.xl },
   balanceTile: {
     flex: 1,
-    backgroundColor: '#FAFAFA',
-    borderRadius: 10,
-    padding: 12,
+    backgroundColor: neutral.background,
+    borderRadius: radius.lg,
+    padding: spacing.xl,
     borderWidth: 1,
-    borderColor: '#EEEEEE',
+    borderColor: neutral.border,
   },
-  tileHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 },
-  tileLabel: { fontSize: 11, fontWeight: '700', color: '#616161' },
+  tileHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.xs },
+  tileLabel: { fontSize: 11, fontWeight: '700', color: neutral.textMuted },
   tileValue: { fontSize: 18, fontWeight: '800', marginVertical: 2 },
-  tileSub: { fontSize: 10, color: '#9E9E9E' },
+  tileSub: { fontSize: 10, color: neutral.textDisabled },
   netBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 8,
-    borderRadius: 8,
+    gap: spacing.sm,
+    paddingVertical: spacing.md,
+    borderRadius: radius.md,
   },
   netText: { fontSize: 12, fontWeight: '700' },
-  batteryCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#EEEEEE',
-  },
   batteryHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: spacing.xl,
   },
-  batteryTitleGroup: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  batteryTitle: { fontSize: 14, fontWeight: '700', color: '#212121' },
-  batteryCap: { fontSize: 11, color: '#757575' },
-  batteryPercent: { fontSize: 20, fontWeight: '800', color: '#2E7D32' },
+  batteryTitleGroup: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  batteryTitle: { fontSize: 14, fontWeight: '700', color: neutral.textPrimary },
+  batteryCap: { fontSize: 11, color: neutral.textSubtle },
+  batteryPercent: { fontSize: 20, fontWeight: '800', color: status.safe.text },
   progressBarTrack: {
     height: 10,
-    backgroundColor: '#E0E0E0',
-    borderRadius: 5,
+    backgroundColor: neutral.chipBorder,
+    borderRadius: radius.xs + 1,
     overflow: 'hidden',
-    marginBottom: 12,
+    marginBottom: spacing.xl,
   },
-  progressBarFill: { height: '100%', borderRadius: 5 },
+  progressBarFill: { height: '100%', borderRadius: radius.xs + 1 },
   batteryEstimateRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  estimateItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  estimateText: { fontSize: 12, color: '#616161' },
-  estimateHighlight: { fontWeight: '800', color: '#212121' },
-  statusPill: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
-  statusPillText: { fontSize: 10, fontWeight: '800' },
+  estimateItem: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  estimateText: { fontSize: 12, color: neutral.textMuted },
+  estimateHighlight: { fontWeight: '800', color: neutral.textPrimary },
   toggleCard: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#EEEEEE',
-    gap: 12,
+    gap: spacing.xl,
   },
   toggleTextGroup: { flex: 1 },
-  toggleTitle: { fontSize: 13, fontWeight: '700', color: '#212121' },
-  toggleDesc: { fontSize: 11, color: '#757575', marginTop: 4, lineHeight: 16 },
+  toggleTitle: { fontSize: 13, fontWeight: '700', color: neutral.textPrimary },
+  toggleDesc: { fontSize: 11, color: neutral.textSubtle, marginTop: spacing.xs, lineHeight: 16 },
 });
