@@ -24,13 +24,18 @@ import { EmptyState } from './ui';
 const SCROLL_HIDE_THRESHOLD = 6;
 const SCROLL_HIDE_OFFSET = 20;
 const HEADER_ANIM_DURATION = 280;
+const REFRESH_DURATION_MS = 2000;
+
+function wait(ms: number) {
+  return new Promise<void>((resolve) => setTimeout(resolve, ms));
+}
 
 export default function HabitatListingsContent() {
   const router = useRouter();
-  const loading = useHabitatStore((s) => s.loading);
   const filters = useHabitatStore((s) => s.filters);
   const fetchHabitats = useHabitatStore((s) => s.fetchHabitats);
   const resetFilters = useHabitatStore((s) => s.resetFilters);
+  const [refreshing, setRefreshing] = useState(false);
 
   const fetchControlData = useControlStore((s) => s.fetchControlData);
 
@@ -92,9 +97,15 @@ export default function HabitatListingsContent() {
     [router],
   );
 
-  const handleRefresh = useCallback(() => {
-    fetchHabitats();
-    fetchControlData();
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    const startedAt = Date.now();
+    try {
+      await Promise.all([fetchHabitats(), fetchControlData()]);
+    } finally {
+      await wait(Math.max(0, REFRESH_DURATION_MS - (Date.now() - startedAt)));
+      setRefreshing(false);
+    }
   }, [fetchHabitats, fetchControlData]);
 
   const renderItem = useCallback(
@@ -142,7 +153,7 @@ export default function HabitatListingsContent() {
             scrollEventThrottle={16}
             refreshControl={
               <RefreshControl
-                refreshing={loading}
+                refreshing={refreshing}
                 onRefresh={handleRefresh}
                 tintColor={brand.primary}
                 colors={[brand.primary]}
