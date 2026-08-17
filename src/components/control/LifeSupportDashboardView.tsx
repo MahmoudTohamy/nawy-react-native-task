@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Button, Card, EmptyState } from '../ui';
+import { LIFE_SUPPORT_METRICS } from '../../constants/lifeSupport';
 import { useHabitatStore } from '../../stores/habitatStore';
 import { neutral, radius, spacing, status } from '../../theme';
 import { Habitability } from '../../types/habitat';
@@ -75,11 +76,24 @@ export default function LifeSupportDashboardView() {
     router.push({ pathname: '/property/unlock/[id]', params: { id: activeHabitat.id } });
   }, [activeHabitat, router]);
 
+  const lifeSupport = activeHabitat?.lifeSupport;
+
+  const gauges = useMemo(() => {
+    if (!lifeSupport) return [];
+    return LIFE_SUPPORT_METRICS.map((metric) => ({
+      key: metric.key,
+      label: metric.label,
+      value: metric.format(lifeSupport),
+      safeRange: metric.safeRange,
+      status: getMetricHabitability(metric.metric, lifeSupport),
+      icon: metric.icon,
+    }));
+  }, [lifeSupport]);
+
   if (!activeHabitat) {
     return <EmptyState icon="planet-outline" title="No Habitats Available" />;
   }
 
-  const { lifeSupport } = activeHabitat;
   const overallHabitability = activeHabitat.habitability;
   const verdictStyle = HABITABILITY_COLORS[overallHabitability];
 
@@ -162,48 +176,16 @@ export default function LifeSupportDashboardView() {
 
       {/* 6 Vital Telemetry Gauges */}
       <View style={styles.gaugesGrid}>
-        <VitalMetricGauge
-          label="Atmospheric O₂"
-          value={`${lifeSupport.o2Level.toFixed(1)}%`}
-          safeRange="Safe: 19.5% – 23.5%"
-          status={getMetricHabitability('o2', lifeSupport)}
-          icon="water-outline"
-        />
-        <VitalMetricGauge
-          label="Cabin Pressure"
-          value={`${lifeSupport.cabinPressureKpa} kPa`}
-          safeRange="Safe: 70 – 102 kPa"
-          status={getMetricHabitability('pressure', lifeSupport)}
-          icon="speedometer-outline"
-        />
-        <VitalMetricGauge
-          label="Thermal HVAC"
-          value={`${lifeSupport.temperatureC}°C`}
-          safeRange="Safe: 18°C – 24°C"
-          status={getMetricHabitability('temp', lifeSupport)}
-          icon="thermometer-outline"
-        />
-        <VitalMetricGauge
-          label="CO₂ Scrubber"
-          value={lifeSupport.co2ScrubberStatus.toUpperCase()}
-          safeRange="Req: ACTIVE"
-          status={getMetricHabitability('scrubber', lifeSupport)}
-          icon="repeat-outline"
-        />
-        <VitalMetricGauge
-          label="Radiation Shield"
-          value={`${lifeSupport.radiationShieldingPct}%`}
-          safeRange="Safe: ≥ 90%"
-          status={getMetricHabitability('rad', lifeSupport)}
-          icon="shield-outline"
-        />
-        <VitalMetricGauge
-          label="Battery Reserve"
-          value={`${lifeSupport.powerReserveHrs.toFixed(1)} hrs`}
-          safeRange="Safe: ≥ 4.0 hrs"
-          status={getMetricHabitability('power', lifeSupport)}
-          icon="battery-charging-outline"
-        />
+        {gauges.map((gauge) => (
+          <VitalMetricGauge
+            key={gauge.key}
+            label={gauge.label}
+            value={gauge.value}
+            safeRange={gauge.safeRange}
+            status={gauge.status}
+            icon={gauge.icon}
+          />
+        ))}
       </View>
 
       {/* Jump to Habitat Details */}

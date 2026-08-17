@@ -5,11 +5,11 @@ import { ScrollView, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import FavoriteButton from '../../components/FavoriteButton';
 import HabitatImage from '../../components/HabitatImage';
 import { Badge, Button, Card, Chip, EmptyState } from '../../components/ui';
+import { getScrubberDetails, LIFE_SUPPORT_METRICS } from '../../constants/lifeSupport';
 import { getHabitatById } from '../../services/habitatService';
 import { useAccessStore } from '../../stores/accessStore';
 import { useHabitatStore } from '../../stores/habitatStore';
-import { brand, neutral, radius, spacing, status } from '../../theme';
-import { Co2ScrubberStatus, LifeSupport, VitalMetric } from '../../types/habitat';
+import { brand, neutral, radius, spacing } from '../../theme';
 import { HABITABILITY_COLORS, getMetricHabitability, metricToneColor } from '../../utils/habitatSafety';
 
 function TelemetryTile({
@@ -39,78 +39,6 @@ function TelemetryTile({
   );
 }
 
-function getScrubberDetails(scrubberStatus: Co2ScrubberStatus) {
-  if (scrubberStatus === 'active') {
-    return { label: 'Active', color: status.safe.text, icon: 'checkmark-circle' as const };
-  }
-  if (scrubberStatus === 'degraded') {
-    return { label: 'Degraded', color: status.warning.text, icon: 'alert-circle' as const };
-  }
-  return { label: 'Failed', color: status.critical.text, icon: 'close-circle' as const };
-}
-
-type TelemetryMetricConfig = {
-  key: string;
-  metric: VitalMetric;
-  icon: keyof typeof Ionicons.glyphMap;
-  label: string;
-  safeRange: string;
-  format: (lifeSupport: LifeSupport) => string;
-};
-
-const TELEMETRY_METRICS: TelemetryMetricConfig[] = [
-  {
-    key: 'o2',
-    metric: 'o2',
-    icon: 'water-outline',
-    label: 'O₂ Level',
-    safeRange: 'Safe: 19.5–23.5%',
-    format: (lifeSupport) => `${lifeSupport.o2Level.toFixed(1)}%`,
-  },
-  {
-    key: 'pressure',
-    metric: 'pressure',
-    icon: 'speedometer-outline',
-    label: 'Cabin Pressure',
-    safeRange: 'Safe: 70–102 kPa',
-    format: (lifeSupport) => `${lifeSupport.cabinPressureKpa} kPa`,
-  },
-  {
-    key: 'temp',
-    metric: 'temp',
-    icon: 'thermometer-outline',
-    label: 'Temperature',
-    safeRange: 'Safe: 18–24°C',
-    format: (lifeSupport) => `${lifeSupport.temperatureC}°C`,
-  },
-  {
-    key: 'rad',
-    metric: 'rad',
-    icon: 'shield-checkmark-outline',
-    label: 'Radiation Shield',
-    safeRange: 'Safe: ≥90%',
-    format: (lifeSupport) => `${lifeSupport.radiationShieldingPct}%`,
-  },
-  {
-    key: 'power',
-    metric: 'power',
-    icon: 'battery-charging-outline',
-    label: 'Power Reserve',
-    safeRange: 'Safe: ≥4 hrs',
-    format: (lifeSupport) => `${lifeSupport.powerReserveHrs.toFixed(1)} hrs`,
-  },
-  {
-    key: 'scrubber',
-    metric: 'scrubber',
-    icon: 'repeat-outline',
-    label: 'CO₂ Scrubber',
-    safeRange: 'Req: Active',
-    format: (lifeSupport) => getScrubberDetails(lifeSupport.co2ScrubberStatus).label,
-  },
-];
-
-const LAST_TELEMETRY_INDEX = TELEMETRY_METRICS.length - 1;
-
 const COMPARE_LABEL = 'Compare with another habitat';
 
 export default function HabitatDetailScreen() {
@@ -124,9 +52,11 @@ export default function HabitatDetailScreen() {
   const telemetryTiles = useMemo(() => {
     if (!habitat) return [];
 
-    return TELEMETRY_METRICS.map((tile, index) => {
-      const isLast = index === LAST_TELEMETRY_INDEX;
-      const scrubber = isLast ? getScrubberDetails(habitat.lifeSupport.co2ScrubberStatus) : null;
+    return LIFE_SUPPORT_METRICS.map((tile) => {
+      const isScrubber = tile.metric === 'scrubber';
+      const scrubber = isScrubber
+        ? getScrubberDetails(habitat.lifeSupport.co2ScrubberStatus)
+        : null;
       const statusColor =
         scrubber?.color ??
         metricToneColor(getMetricHabitability(tile.metric, habitat.lifeSupport));
@@ -138,7 +68,7 @@ export default function HabitatDetailScreen() {
         value: tile.format(habitat.lifeSupport),
         safeRange: tile.safeRange,
         statusColor,
-        style: isLast ? { borderColor: statusColor } : undefined,
+        style: isScrubber ? { borderColor: statusColor } : undefined,
       };
     });
   }, [habitat]);
