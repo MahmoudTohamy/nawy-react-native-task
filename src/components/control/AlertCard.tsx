@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { memo, useCallback } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { CATEGORY_ICONS, SEVERITY_COLORS } from '../../constants/alerts';
 import { brand, neutral, radius, shadow, spacing } from '../../theme';
 import { HabitatAlert } from '../../types/control';
@@ -27,8 +27,13 @@ function AlertCard({ alert, onPress, onPressHabitat }: Props) {
   }, [alert.habitatId, onPressHabitat]);
 
   return (
-    <TouchableOpacity onPress={handlePress} activeOpacity={0.85}>
-      <Card borderColor={severityStyle.border} style={styles.card}>
+    <Card borderColor={severityStyle.border} style={styles.card}>
+      <Pressable
+        onPress={handlePress}
+        style={({ pressed }) => (pressed ? styles.pressed : undefined)}
+        accessibilityRole="button"
+        accessibilityLabel={alert.title}
+      >
         <View style={styles.cardHeader}>
           <View style={styles.headerTitleRow}>
             <View style={[styles.categoryIconCircle, { backgroundColor: severityStyle.bg }]}>
@@ -40,32 +45,39 @@ function AlertCard({ alert, onPress, onPressHabitat }: Props) {
           </View>
           <Badge label={alert.severity.toUpperCase()} tone={alert.severity} />
         </View>
+      </Pressable>
 
-        <View style={styles.metaRow}>
-          <TouchableOpacity
-            style={styles.habitatLink}
-            onPress={handleHabitatPress}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="business-outline" size={13} color={brand.primary} />
-            <Text style={styles.habitatName}>{alert.habitatTitle}</Text>
-            <Text style={styles.sectorText}>({alert.sector})</Text>
-          </TouchableOpacity>
-          <Text style={styles.solTimestamp}>
-            Sol {alert.timestampSol} · {alert.timestampTime}
-          </Text>
-        </View>
+      <View style={styles.metaRow}>
+        <Pressable
+          onPress={handleHabitatPress}
+          style={({ pressed }) => [styles.habitatLink, pressed && styles.pressed]}
+          accessibilityRole="button"
+          accessibilityLabel={`${alert.habitatTitle}, ${alert.sector}`}
+        >
+          <Ionicons name="business-outline" size={13} color={brand.primary} />
+          <Text style={styles.habitatName}>{alert.habitatTitle}</Text>
+          <Text style={styles.sectorText}>({alert.sector})</Text>
+        </Pressable>
+        <Text style={styles.solTimestamp}>
+          Sol {alert.timestampSol} · {alert.timestampTime}
+        </Text>
+      </View>
 
+      <Pressable
+        onPress={handlePress}
+        style={({ pressed }) => (pressed ? styles.pressed : undefined)}
+        accessibilityRole="button"
+        accessibilityLabel={TAP_TO_RESPOND}
+      >
         <Text style={styles.messageText} numberOfLines={3}>
           {alert.message}
         </Text>
-
         <View style={styles.respondRow}>
           <Text style={styles.respondText}>{TAP_TO_RESPOND}</Text>
           <Ionicons name="chevron-forward" size={16} color={brand.primary} />
         </View>
-      </Card>
-    </TouchableOpacity>
+      </Pressable>
+    </Card>
   );
 }
 
@@ -76,6 +88,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.06,
     shadowRadius: 4,
     shadowOffset: { width: 0, height: 2 },
+  },
+  pressed: {
+    opacity: 0.85,
   },
   cardHeader: {
     flexDirection: 'row',
